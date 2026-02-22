@@ -71,6 +71,7 @@ install -d -m 0755 "${GRAFANA_DASH_JSON_DIR}"
 
 cat >"${GRAFANA_DS_DIR}/aqpy-datasources.yaml" <<EOF
 apiVersion: 1
+prune: true
 
 deleteDatasources:
   - name: AQPy BME
@@ -87,13 +88,14 @@ datasources:
     database: ${DB_NAME_BME}
     user: ${DB_USER}
     jsonData:
+      database: ${DB_NAME_BME}
       sslmode: disable
       postgresVersion: 1700
       timescaledb: false
     secureJsonData:
       password: ${DB_PASSWORD}
     isDefault: true
-    editable: true
+    editable: false
   - name: AQPy PMS
     uid: aqpy-pms
     type: postgres
@@ -102,12 +104,13 @@ datasources:
     database: ${DB_NAME_PMS}
     user: ${DB_USER}
     jsonData:
+      database: ${DB_NAME_PMS}
       sslmode: disable
       postgresVersion: 1700
       timescaledb: false
     secureJsonData:
       password: ${DB_PASSWORD}
-    editable: true
+    editable: false
 EOF
 
 cat >"${GRAFANA_DASH_PROVIDER_DIR}/aqpy-dashboards.yaml" <<EOF
