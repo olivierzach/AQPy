@@ -300,6 +300,12 @@ cd /home/pi/AQPy
 sudo ./scripts/install_from_fresh_clone.sh --with-bootstrap
 ```
 
+To also install Grafana in the same run:
+```bash
+cd /home/pi/AQPy
+sudo ./scripts/install_from_fresh_clone.sh --with-bootstrap --with-grafana
+```
+
 This installer:
 * installs OS dependencies
 * enables I2C + serial hardware (best effort)
@@ -307,6 +313,7 @@ This installer:
 * creates `.env` from template if missing
 * ensures Postgres databases exist
 * runs idempotent bring-up and optional model bootstrap
+* optional Grafana install and service enable (`--with-grafana`)
 
 After first run:
 1. verify `.env` credentials/settings

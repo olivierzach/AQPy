@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 DB_NAME="${AQPY_DB_NAME_BME:-bme}"
+DB_OS_USER="${AQPY_DB_OS_USER:-postgres}"
 INSTALL_DIR="${AQPY_SYSTEMD_DIR:-/etc/systemd/system}"
 APP_DIR="${AQPY_APP_DIR:-${REPO_ROOT}}"
 APP_USER="${AQPY_APP_USER:-${SUDO_USER:-pi}}"
@@ -34,6 +35,7 @@ Options:
 
 Environment overrides (optional):
   PYTHON_BIN, AQPY_DB_NAME_BME, AQPY_SYSTEMD_DIR,
+  AQPY_DB_OS_USER,
   AQPY_APP_DIR, AQPY_APP_USER, AQPY_APP_GROUP,
   AQPY_BRINGUP_WAIT_RETRIES, AQPY_BRINGUP_WAIT_SECONDS
 EOF
@@ -112,6 +114,7 @@ fi
 require_cmd install
 require_cmd psql
 require_cmd systemctl
+require_cmd sudo
 
 if [[ ! -x "${PYTHON_BIN}" ]]; then
   echo "Python executable not found or not executable: ${PYTHON_BIN}" >&2
@@ -163,11 +166,11 @@ fi
 
 echo "[bringup] Initializing schema in database '${DB_NAME}'..."
 if [[ "${WAIT_MODE}" -eq 1 ]]; then
-  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" psql "${DB_NAME}" -f sql/forecast_schema.sql
-  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" psql "${DB_NAME}" -f sql/online_learning_schema.sql
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/forecast_schema.sql
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/online_learning_schema.sql
 else
-  psql "${DB_NAME}" -f sql/forecast_schema.sql
-  psql "${DB_NAME}" -f sql/online_learning_schema.sql
+  sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/forecast_schema.sql
+  sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/online_learning_schema.sql
 fi
 
 echo "[bringup] Installing systemd units into ${INSTALL_DIR}..."

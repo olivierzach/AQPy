@@ -10,10 +10,11 @@ APP_DIR="${AQPY_APP_DIR:-${REPO_ROOT}}"
 DB_NAME="${AQPY_DB_NAME_BME:-bme}"
 PMS_DB_NAME="${AQPY_DB_NAME_PMS:-pms}"
 RUN_BOOTSTRAP=0
+RUN_GRAFANA=0
 
 usage() {
   cat <<EOF
-Usage: sudo $(basename "$0") [--with-bootstrap]
+Usage: sudo $(basename "$0") [--with-bootstrap] [--with-grafana]
 
 Turnkey install from a fresh clone:
   1) Installs OS prerequisites
@@ -25,6 +26,7 @@ Turnkey install from a fresh clone:
 
 Options:
   --with-bootstrap   train all 3 models immediately and write initial predictions
+  --with-grafana     install and enable Grafana server
   -h, --help         show help
 
 Environment overrides:
@@ -41,10 +43,30 @@ require_cmd() {
   fi
 }
 
+install_grafana() {
+  echo "[install] Installing Grafana..."
+  apt-get install -y apt-transport-https software-properties-common wget gpg
+  install -d -m 0755 /etc/apt/keyrings
+  if [[ ! -f /etc/apt/keyrings/grafana.gpg ]]; then
+    wget -q -O- https://apt.grafana.com/gpg.key | gpg --dearmor >/etc/apt/keyrings/grafana.gpg
+    chmod 644 /etc/apt/keyrings/grafana.gpg
+  fi
+  cat >/etc/apt/sources.list.d/grafana.list <<'EOF'
+deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main
+EOF
+  apt-get update
+  apt-get install -y grafana
+  systemctl enable --now grafana-server
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --with-bootstrap)
       RUN_BOOTSTRAP=1
+      shift
+      ;;
+    --with-grafana)
+      RUN_GRAFANA=1
       shift
       ;;
     -h|--help)
@@ -66,7 +88,6 @@ fi
 
 require_cmd apt-get
 require_cmd python3
-require_cmd psql
 require_cmd systemctl
 
 echo "[install] Installing OS packages..."
@@ -80,6 +101,12 @@ apt-get install -y \
   i2c-tools \
   postgresql \
   postgresql-client
+
+require_cmd psql
+
+if [[ "${RUN_GRAFANA}" -eq 1 ]]; then
+  install_grafana
+fi
 
 if command -v raspi-config >/dev/null 2>&1; then
   echo "[install] Enabling Raspberry Pi interfaces (I2C + serial hardware)..."
