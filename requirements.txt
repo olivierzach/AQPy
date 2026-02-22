@@ -1,0 +1,6 @@
+RPi.bme280
+numpy
+psycopg2-binary
+pyserial
+smbus2
+ruff

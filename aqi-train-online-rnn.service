@@ -1,0 +1,30 @@
+[Unit]
+Description=run AQPy GRU-lite online training step
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/pi/AQPy
+EnvironmentFile=-/home/pi/AQPy/.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_online_training.py --database bme --table pi --time-col t --target temperature --model-name aqpy_rnn_temperature --model-path /home/pi/AQPy/models/bme_temperature_rnn.json --model-type rnn_lite_gru --history-hours 336 --seq-len 24 --holdout-ratio 0.2 --burn-in-rows 200 --max-train-rows 5000 --min-new-rows 30 --hidden-dim 8 --rnn-ridge 0.001 --random-seed 42
+User=pi
+Group=pi
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateMounts=true
+ProtectSystem=full
+ProtectHome=read-only
+ProtectControlGroups=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectClock=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+SystemCallArchitectures=native
+UMask=0077

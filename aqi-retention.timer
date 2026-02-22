@@ -1,0 +1,11 @@
+[Unit]
+Description=run AQPy retention pruning daily
+
+[Timer]
+OnBootSec=10m
+OnUnitActiveSec=1d
+Persistent=true
+Unit=aqi-retention.service
+
+[Install]
+WantedBy=timers.target

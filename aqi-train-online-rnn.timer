@@ -1,0 +1,11 @@
+[Unit]
+Description=run AQPy GRU-lite online training every 10 minutes
+
+[Timer]
+OnBootSec=5m
+OnUnitActiveSec=10m
+Persistent=true
+Unit=aqi-train-online-rnn.service
+
+[Install]
+WantedBy=timers.target

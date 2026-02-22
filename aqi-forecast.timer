@@ -1,0 +1,11 @@
+[Unit]
+Description=run AQPy forecast inference every 10 minutes
+
+[Timer]
+OnBootSec=2m
+OnUnitActiveSec=10m
+Persistent=true
+Unit=aqi-forecast.service
+
+[Install]
+WantedBy=timers.target

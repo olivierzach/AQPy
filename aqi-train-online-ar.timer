@@ -1,0 +1,11 @@
+[Unit]
+Description=run AQPy adaptive AR online training every 10 minutes
+
+[Timer]
+OnBootSec=4m
+OnUnitActiveSec=10m
+Persistent=true
+Unit=aqi-train-online-ar.service
+
+[Install]
+WantedBy=timers.target

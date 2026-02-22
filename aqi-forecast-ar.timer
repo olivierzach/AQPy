@@ -1,0 +1,11 @@
+[Unit]
+Description=run AQPy adaptive AR forecast inference every 10 minutes
+
+[Timer]
+OnBootSec=2m30s
+OnUnitActiveSec=10m
+Persistent=true
+Unit=aqi-forecast-ar.service
+
+[Install]
+WantedBy=timers.target

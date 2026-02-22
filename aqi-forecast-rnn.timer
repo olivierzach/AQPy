@@ -1,0 +1,11 @@
+[Unit]
+Description=run AQPy GRU-lite forecast inference every 10 minutes
+
+[Timer]
+OnBootSec=3m
+OnUnitActiveSec=10m
+Persistent=true
+Unit=aqi-forecast-rnn.service
+
+[Install]
+WantedBy=timers.target

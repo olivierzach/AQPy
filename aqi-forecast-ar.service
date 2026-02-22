@@ -1,17 +1,16 @@
 [Unit]
-Description=run AQI sensor script
+Description=run AQPy adaptive AR forecast inference
+After=network-online.target
+Wants=network-online.target
 
 [Service]
-Type=simple
+Type=oneshot
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-# use -u to make print statements unbuffered in logs
-ExecStart=/usr/bin/python3 -u /home/pi/AQPy/read_sensors.py
+ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_forecast_inference.py --model-path /home/pi/AQPy/models/bme_temperature_ar.json --horizon-steps 12
 User=pi
 Group=pi
-Restart=on-failure
-RestartSec=10s
 NoNewPrivileges=true
 PrivateTmp=true
 PrivateMounts=true
@@ -29,6 +28,3 @@ RestrictRealtime=true
 RestrictNamespaces=true
 SystemCallArchitectures=native
 UMask=0077
-
-[Install]
-WantedBy=multi-user.target
