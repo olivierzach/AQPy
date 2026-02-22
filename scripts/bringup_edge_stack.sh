@@ -208,7 +208,7 @@ fi
 
 if [[ "${RUN_BOOTSTRAP}" -eq 1 ]]; then
   echo "[bringup] Bootstrapping model artifacts and initial predictions..."
-  "${REPO_ROOT}/scripts/bootstrap_models.sh"
+  sudo -u "${APP_USER}" "${REPO_ROOT}/scripts/bootstrap_models.sh"
 fi
 
 echo "[bringup] Status summary:"
