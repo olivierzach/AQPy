@@ -80,18 +80,19 @@ This repo includes a modular edge-ML forecasting pipeline.
 * `aqpy/forecast/online_repository.py`: training-state, holdout metrics, and retention run logs
 * `aqpy/forecast/online_training.py`: online retraining step with holdout evaluation logging
 * `aqpy/forecast/retention.py`: training-aware retention policy
+* `aqpy/forecast/specs.py`: model spec loader/filter for multi-sensor orchestration
 * `train_forecast_model.py`: thin CLI wrapper for training
 * `run_forecast_inference.py`: thin CLI wrapper for inference
 * `run_online_training.py`: thin CLI wrapper for online retraining across model types
 * `run_data_retention.py`: thin CLI wrapper for retention
+* `run_online_training_batch.py`: batch retraining from `configs/model_specs.json`
+* `run_forecast_batch.py`: batch inference from `configs/model_specs.json`
+* `run_data_retention_batch.py`: batch retention by unique source table from specs
+* `configs/model_specs.json`: declarative model list (both `bme` and `pms` targets)
 * `sql/forecast_schema.sql`: schema for `predictions` and `model_registry`
 * `sql/online_learning_schema.sql`: schema for online training state and holdout metrics
-* `aqi-train-online.service` + `aqi-train-online.timer`: scheduled online retraining
-* `aqi-train-online-ar.service` + `aqi-train-online-ar.timer`: scheduled adaptive AR retraining
-* `aqi-train-online-rnn.service` + `aqi-train-online-rnn.timer`: scheduled GRU-lite retraining
-* `aqi-forecast.service` + `aqi-forecast.timer`: scheduled NN forecast inference
-* `aqi-forecast-ar.service` + `aqi-forecast-ar.timer`: scheduled adaptive AR forecast inference
-* `aqi-forecast-rnn.service` + `aqi-forecast-rnn.timer`: scheduled GRU-lite forecast inference
+* `aqi-train-online.service` + `aqi-train-online.timer`: scheduled batch retraining across all configured models
+* `aqi-forecast.service` + `aqi-forecast.timer`: scheduled batch inference across all configured models
 * `aqi-retention.service` + `aqi-retention.timer`: scheduled data retention pruning
 
 ## Initialize Forecast Tables
@@ -99,6 +100,8 @@ Run once per database used for forecasting:
 ```bash
 psql bme -f sql/forecast_schema.sql
 psql bme -f sql/online_learning_schema.sql
+psql pms -f sql/forecast_schema.sql
+psql pms -f sql/online_learning_schema.sql
 ```
 
 ## Train Model (offline or on Pi)
@@ -231,40 +234,20 @@ This prevents deleting records that have not been incorporated into online train
 ```bash
 sudo cp aqi-train-online.service /etc/systemd/system/aqi-train-online.service
 sudo cp aqi-train-online.timer /etc/systemd/system/aqi-train-online.timer
-sudo cp aqi-train-online-ar.service /etc/systemd/system/aqi-train-online-ar.service
-sudo cp aqi-train-online-ar.timer /etc/systemd/system/aqi-train-online-ar.timer
-sudo cp aqi-train-online-rnn.service /etc/systemd/system/aqi-train-online-rnn.service
-sudo cp aqi-train-online-rnn.timer /etc/systemd/system/aqi-train-online-rnn.timer
 sudo cp aqi-forecast.service /etc/systemd/system/aqi-forecast.service
 sudo cp aqi-forecast.timer /etc/systemd/system/aqi-forecast.timer
-sudo cp aqi-forecast-ar.service /etc/systemd/system/aqi-forecast-ar.service
-sudo cp aqi-forecast-ar.timer /etc/systemd/system/aqi-forecast-ar.timer
-sudo cp aqi-forecast-rnn.service /etc/systemd/system/aqi-forecast-rnn.service
-sudo cp aqi-forecast-rnn.timer /etc/systemd/system/aqi-forecast-rnn.timer
 sudo cp aqi-retention.service /etc/systemd/system/aqi-retention.service
 sudo cp aqi-retention.timer /etc/systemd/system/aqi-retention.timer
 sudo systemctl daemon-reload
 sudo systemctl enable --now aqi-train-online.timer
-sudo systemctl enable --now aqi-train-online-ar.timer
-sudo systemctl enable --now aqi-train-online-rnn.timer
 sudo systemctl enable --now aqi-forecast.timer
-sudo systemctl enable --now aqi-forecast-ar.timer
-sudo systemctl enable --now aqi-forecast-rnn.timer
 sudo systemctl enable --now aqi-retention.timer
 systemctl status aqi-train-online.timer
-systemctl status aqi-train-online-ar.timer
-systemctl status aqi-train-online-rnn.timer
 systemctl status aqi-forecast.timer
-systemctl status aqi-forecast-ar.timer
-systemctl status aqi-forecast-rnn.timer
 systemctl status aqi-retention.timer
 journalctl -u aqi-train-online.service -n 100 --no-pager
-journalctl -u aqi-train-online-ar.service -n 100 --no-pager
-journalctl -u aqi-train-online-rnn.service -n 100 --no-pager
 journalctl -u aqi-forecast.timer -n 20 --no-pager
 journalctl -u aqi-forecast.service -n 100 --no-pager
-journalctl -u aqi-forecast-ar.service -n 100 --no-pager
-journalctl -u aqi-forecast-rnn.service -n 100 --no-pager
 journalctl -u aqi-retention.service -n 100 --no-pager
 ```
 
@@ -281,7 +264,7 @@ cd /home/pi/AQPy
 sudo ./scripts/bringup_edge_stack.sh --wait
 ```
 
-To also run a one-shot bootstrap (train all 3 models immediately and write initial predictions):
+To also run a one-shot bootstrap (train all configured models immediately and write initial predictions):
 ```bash
 cd /home/pi/AQPy
 sudo ./scripts/bringup_edge_stack.sh --with-bootstrap

@@ -41,3 +41,13 @@ class IngestRepository(Protocol):
 
     def close(self) -> None:
         ...
+
+
+class IngestTask(Protocol):
+    name: str
+
+    def run_once(self) -> bool:
+        ...
+
+    def close(self) -> None:
+        ...

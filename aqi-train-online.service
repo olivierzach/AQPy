@@ -8,7 +8,7 @@ Type=oneshot
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_online_training.py --database bme --table pi --time-col t --target temperature --model-name aqpy_nn_temperature --model-path /home/pi/AQPy/models/bme_temperature_nn.json --history-hours 336 --lags 1,2,3,6,12 --holdout-ratio 0.2 --min-new-rows 30 --learning-rate 0.01 --epochs 40 --batch-size 64 --hidden-dim 8
+ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_online_training_batch.py --spec-file /home/pi/AQPy/configs/model_specs.json
 User=pi
 Group=pi
 NoNewPrivileges=true

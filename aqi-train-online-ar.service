@@ -5,10 +5,10 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+ExecStart=/usr/bin/true
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_online_training.py --database bme --table pi --time-col t --target temperature --model-name aqpy_ar_temperature --model-path /home/pi/AQPy/models/bme_temperature_ar.json --model-type adaptive_ar --history-hours 336 --lags 1,2,3,6,12 --holdout-ratio 0.2 --min-new-rows 30 --forgetting-factor 0.995 --ar-delta 100.0
 User=pi
 Group=pi
 NoNewPrivileges=true

@@ -8,7 +8,7 @@ Type=oneshot
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_forecast_inference.py --model-path /home/pi/AQPy/models/bme_temperature_nn.json --horizon-steps 12
+ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_forecast_batch.py --spec-file /home/pi/AQPy/configs/model_specs.json
 User=pi
 Group=pi
 NoNewPrivileges=true

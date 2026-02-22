@@ -8,7 +8,7 @@ Type=oneshot
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_data_retention.py --database bme --table pi --time-col t --retention-days 14 --safety-hours 12
+ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_data_retention_batch.py --spec-file /home/pi/AQPy/configs/model_specs.json --retention-days 14 --safety-hours 12
 User=pi
 Group=pi
 NoNewPrivileges=true

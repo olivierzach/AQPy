@@ -5,10 +5,10 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+ExecStart=/usr/bin/true
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_forecast_inference.py --model-path /home/pi/AQPy/models/bme_temperature_ar.json --horizon-steps 12
 User=pi
 Group=pi
 NoNewPrivileges=true

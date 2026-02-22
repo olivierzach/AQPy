@@ -25,7 +25,7 @@ Turnkey install from a fresh clone:
   6) Runs bring-up (units/timers/schema)
 
 Options:
-  --with-bootstrap   train all 3 models immediately and write initial predictions
+  --with-bootstrap   train all configured models immediately and write initial predictions
   --with-grafana     install and enable Grafana server
   -h, --help         show help
 

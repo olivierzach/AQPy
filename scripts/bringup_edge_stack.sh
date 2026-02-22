@@ -25,7 +25,7 @@ End-to-end bring-up:
   1) Initialize forecast/online-learning DB schema
   2) Install systemd units/timers for ingest + train + forecast + retention
   3) Enable/start all services and timers
-  4) Optionally bootstrap all 3 models immediately
+  4) Optionally bootstrap all configured models immediately
 
 Options:
   --with-bootstrap     run scripts/bootstrap_models.sh after enabling units
@@ -133,16 +133,8 @@ SYSTEMD_FILES=(
   "aqi.service"
   "aqi-train-online.service"
   "aqi-train-online.timer"
-  "aqi-train-online-ar.service"
-  "aqi-train-online-ar.timer"
-  "aqi-train-online-rnn.service"
-  "aqi-train-online-rnn.timer"
   "aqi-forecast.service"
   "aqi-forecast.timer"
-  "aqi-forecast-ar.service"
-  "aqi-forecast-ar.timer"
-  "aqi-forecast-rnn.service"
-  "aqi-forecast-rnn.timer"
   "aqi-retention.service"
   "aqi-retention.timer"
 )
@@ -192,22 +184,24 @@ echo "[bringup] Enabling and starting services/timers..."
 if [[ "${WAIT_MODE}" -eq 1 ]]; then
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" systemctl enable --now aqi.service
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" systemctl enable --now aqi-train-online.timer
-  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" systemctl enable --now aqi-train-online-ar.timer
-  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" systemctl enable --now aqi-train-online-rnn.timer
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" systemctl enable --now aqi-forecast.timer
-  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" systemctl enable --now aqi-forecast-ar.timer
-  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" systemctl enable --now aqi-forecast-rnn.timer
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" systemctl enable --now aqi-retention.timer
 else
   systemctl enable --now aqi.service
   systemctl enable --now aqi-train-online.timer
-  systemctl enable --now aqi-train-online-ar.timer
-  systemctl enable --now aqi-train-online-rnn.timer
   systemctl enable --now aqi-forecast.timer
-  systemctl enable --now aqi-forecast-ar.timer
-  systemctl enable --now aqi-forecast-rnn.timer
   systemctl enable --now aqi-retention.timer
 fi
+
+for deprecated_timer in \
+  aqi-train-online-ar.timer \
+  aqi-train-online-rnn.timer \
+  aqi-forecast-ar.timer \
+  aqi-forecast-rnn.timer; do
+  if systemctl list-unit-files "${deprecated_timer}" >/dev/null 2>&1; then
+    systemctl disable --now "${deprecated_timer}" >/dev/null 2>&1 || true
+  fi
+done
 
 if [[ "${RUN_BOOTSTRAP}" -eq 1 ]]; then
   echo "[bringup] Bootstrapping model artifacts and initial predictions..."
@@ -218,11 +212,7 @@ echo "[bringup] Status summary:"
 systemctl --no-pager --full status \
   aqi.service \
   aqi-train-online.timer \
-  aqi-train-online-ar.timer \
-  aqi-train-online-rnn.timer \
   aqi-forecast.timer \
-  aqi-forecast-ar.timer \
-  aqi-forecast-rnn.timer \
   aqi-retention.timer || true
 
 echo "[bringup] Complete."
