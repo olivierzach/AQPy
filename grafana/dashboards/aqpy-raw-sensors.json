@@ -62,7 +62,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT t AS \"time\", temperature AS \"temperature_f\"\\nFROM pi\\nWHERE $__timeFilter(t)\\nORDER BY t;",
+          "rawSql": "SELECT t AS \"time\", temperature AS \"temperature_f\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
           "refId": "A"
         }
       ],
@@ -109,7 +109,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT t AS \"time\", humidity AS \"humidity_pct\"\\nFROM pi\\nWHERE $__timeFilter(t)\\nORDER BY t;",
+          "rawSql": "SELECT t AS \"time\", humidity AS \"humidity_pct\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
           "refId": "A"
         }
       ],
@@ -156,7 +156,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT t AS \"time\", pressure AS \"pressure_hpa\"\\nFROM pi\\nWHERE $__timeFilter(t)\\nORDER BY t;",
+          "rawSql": "SELECT t AS \"time\", pressure AS \"pressure_hpa\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
           "refId": "A"
         }
       ],
@@ -203,7 +203,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT t AS \"time\", pm25_st AS \"pm25_st\"\\nFROM pi\\nWHERE $__timeFilter(t)\\nORDER BY t;",
+          "rawSql": "SELECT t AS \"time\", pm25_st AS \"pm25_st\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
           "refId": "A"
         }
       ],
