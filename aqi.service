@@ -7,7 +7,7 @@ WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
 # use -u to make print statements unbuffered in logs
-ExecStart=/usr/bin/python3 -u /home/pi/AQPy/read_sensors.py
+ExecStart=/home/pi/AQPy/.venv/bin/python -u /home/pi/AQPy/read_sensors.py
 User=pi
 Group=pi
 Restart=on-failure
