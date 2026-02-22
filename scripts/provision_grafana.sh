@@ -15,7 +15,7 @@ Usage: sudo $(basename "$0")
 Provision Grafana for AQPy:
   1) Creates PostgreSQL datasources (bme + pms)
   2) Installs AQPy dashboard provider
-  3) Installs AQPy starter dashboard JSON
+  3) Installs AQPy dashboard JSON files from grafana/dashboards/
   4) Restarts grafana-server
 
 Reads DB connection values from:
@@ -125,11 +125,17 @@ providers:
       path: ${GRAFANA_DASH_JSON_DIR}
 EOF
 
-install -m 0644 "${REPO_ROOT}/grafana/dashboards/aqpy-overview.json" \
-  "${GRAFANA_DASH_JSON_DIR}/aqpy-overview.json"
+if [[ ! -d "${REPO_ROOT}/grafana/dashboards" ]]; then
+  echo "Missing dashboard directory: ${REPO_ROOT}/grafana/dashboards" >&2
+  exit 1
+fi
+for dashboard in "${REPO_ROOT}"/grafana/dashboards/*.json; do
+  install -m 0644 "${dashboard}" "${GRAFANA_DASH_JSON_DIR}/$(basename "${dashboard}")"
+done
 
 systemctl enable --now grafana-server
 systemctl restart grafana-server
 
-echo "[grafana] Provisioned datasources and dashboard."
-echo "[grafana] Open: http://<pi-ip>:3000"
+echo "[grafana] Provisioned datasources and dashboards."
+echo "[grafana] Open overview: http://<pi-ip>:3000/d/aqpy-overview"
+echo "[grafana] Open raw sensors: http://<pi-ip>:3000/d/aqpy-raw"

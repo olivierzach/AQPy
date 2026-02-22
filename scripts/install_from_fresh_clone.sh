@@ -45,7 +45,7 @@ require_cmd() {
 
 install_grafana() {
   echo "[install] Installing Grafana..."
-  apt-get install -y apt-transport-https wget gpg ca-certificates
+  apt-get install -y apt-transport-https wget gnupg ca-certificates
   install -d -m 0755 /etc/apt/keyrings
   if [[ ! -f /etc/apt/keyrings/grafana.gpg ]]; then
     wget -q -O- https://apt.grafana.com/gpg.key | gpg --dearmor >/etc/apt/keyrings/grafana.gpg
@@ -55,6 +55,11 @@ install_grafana() {
 deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main
 EOF
   apt-get update
+  if apt-cache policy grafana | grep -q "Candidate: (none)"; then
+    echo "[install] ERROR: Grafana repository configured but package candidate was not found." >&2
+    echo "[install] Check network/DNS and re-run apt-get update." >&2
+    return 1
+  fi
   apt-get install -y grafana
   systemctl enable --now grafana-server
 }

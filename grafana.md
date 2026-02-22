@@ -1,6 +1,17 @@
 # Grafana
 Grafana is a dashboard frontend for the postgres database. Queries can be entered in the graphical interface and plotted. The raspberry pi hosts the grafana server. 
 
+## Turnkey Setup
+From `/home/pi/AQPy`:
+```bash
+sudo ./scripts/install_from_fresh_clone.sh --with-grafana
+sudo ./scripts/provision_grafana.sh
+```
+
+Dashboards:
+- Overview: `http://<pi-ip>:3000/d/aqpy-overview`
+- Raw sensors: `http://<pi-ip>:3000/d/aqpy-raw`
+
 # Accessing Grafana 
 Find the raspberry pi's local ip address. You could check your router's list of connect devices. The raspberry pi should show up as aqpi. Alternatively, plug the raspberry pi into a monitor and using a keyboard open the terminal application and run `ip addr show`. If connected over wifi, use the ip address listed under `wlan0`. If over ethernet, use `eth0`. Enter the IP address into your browser while connected to the same network the raspberry pi is on. 
 

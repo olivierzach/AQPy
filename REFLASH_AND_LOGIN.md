@@ -43,17 +43,10 @@ Expected:
 - `/dev/serial0` exists
 - BME280 appears at `0x76` (or sometimes `0x77`)
 
-## 5. Bring Up AQPy
+## 5. Bring Up AQPy (Turnkey)
 ```bash
 cd /home/pi/AQPy
-python3 -m pip install -r requirements.txt
-cp .env.example .env
-nano .env
-sudo cp aqi.service /etc/systemd/system/aqi.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now aqi
-systemctl status aqi
-journalctl -u aqi -n 100 --no-pager
+sudo ./scripts/install_from_fresh_clone.sh --with-bootstrap
 ```
 
 ## 6. Quick Troubleshooting
@@ -61,3 +54,4 @@ journalctl -u aqi -n 100 --no-pager
 - `Connection refused` on port 22: SSH not enabled in Imager settings.
 - `Permission denied`: wrong username/password.
 - Service errors: check logs with `journalctl -u aqi -n 100 --no-pager`.
+- Full guide: see `TROUBLESHOOTING.md`.

@@ -1,6 +1,11 @@
 # AQPy 
 Repository for scripts and files to read the PMS5003 air quality index sensor and the BME280 temperature/pressure/humidity sensor from a Raspberry Pi. `systemctl` is used to manage the `read_sensors.py` python script. The data is stored into a postgresql database with the timescaledb extension. From there, Grafana is used to plot the data over time. 
 
+## Operational Docs
+* `TROUBLESHOOTING.md`: end-to-end troubleshooting (SSH, DB auth/ownership, schema, sensor serial, Grafana)
+* `REFLASH_AND_LOGIN.md`: reflash + first SSH login checklist
+* `grafana.md`: Grafana background notes
+
 # Hardware 
 ## PMS5003 
 The PMS5003 is assumed to be connected over serial in the `/dev/serial0` position. See the [PMS5003 manual](https://www.aqmd.gov/docs/default-source/aq-spec/resources-page/plantower-pms5003-manual_v2-3.pdf) for wiring diagram of the PMS5003. The `pinout` command on the Raspberry Pi OS will show the function of the GPIO pins. 
@@ -49,6 +54,11 @@ sudo ./scripts/provision_grafana.sh
 Open:
 ```text
 http://<pi-ip>:3000/d/aqpy-overview
+```
+
+Raw sensors dashboard:
+```text
+http://<pi-ip>:3000/d/aqpy-raw
 ```
 
 Notes:
@@ -326,6 +336,40 @@ This installer:
 After first run:
 1. verify `.env` credentials/settings
 2. reboot once if interface settings changed (`sudo reboot`)
+
+## First Verification Checklist
+```bash
+systemctl status aqi --no-pager
+systemctl status aqi-train-online.timer --no-pager
+systemctl status aqi-forecast.timer --no-pager
+systemctl status aqi-retention.timer --no-pager
+
+journalctl -u aqi -n 80 --no-pager
+journalctl -u aqi-train-online.service -n 80 --no-pager
+journalctl -u aqi-forecast.service -n 80 --no-pager
+
+PGPASSWORD='<your_db_password>' psql -h localhost -U pi -d bme -c "select count(*), max(t) from pi;"
+PGPASSWORD='<your_db_password>' psql -h localhost -U pi -d bme -c "select model_name, count(*) from predictions group by 1 order by 1;"
+```
+
+## SSH Profiling Scripts
+Use these when connected to Pi over SSH for quick health/profiling checks.
+
+One-shot snapshot:
+```bash
+cd /home/pi/AQPy
+./scripts/profile_snapshot.sh
+```
+
+Include recent logs + serial probe:
+```bash
+./scripts/profile_snapshot.sh --with-logs --serial-probe
+```
+
+Continuous watch (refresh every 30s):
+```bash
+./scripts/profile_watch.sh --interval 30
+```
 
 ## Grafana Metrics Queries (Examples)
 Holdout MAE trend:
