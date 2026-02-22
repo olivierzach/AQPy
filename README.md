@@ -23,7 +23,7 @@ The BME280 is assumed to be connected with I2C.
 | SCL | 5 | 
 | SDA | 3 | 
 
-# Installation 
+# Installation
 1. install python dependencies:
    * `python3 -m pip install -r requirements.txt`
 2. copy `.env.example` to `.env` and set database credentials:
@@ -33,6 +33,28 @@ The BME280 is assumed to be connected with I2C.
 5. run `sudo systemctl enable aqi` to start `aqi.service` at boot
 6. either `sudo reboot` or `sudo systemctl start aqi` to start the service
 7. make sure its running with `systemctl status aqi`. It will say "active (running)" if things are working properly.
+
+## Grafana (Turnkey Provisioning)
+This repo can provision Grafana automatically with:
+* datasource `AQPy BME` (database `bme`)
+* datasource `AQPy PMS` (database `pms`)
+* dashboard `AQPy Edge Sensors + Forecasts` (`uid=aqpy-overview`)
+
+From Pi:
+```bash
+cd /home/pi/AQPy
+sudo ./scripts/provision_grafana.sh
+```
+
+Open:
+```text
+http://<pi-ip>:3000/d/aqpy-overview
+```
+
+Notes:
+* `scripts/provision_grafana.sh` reads DB credentials from `.env`
+* make sure `.env` has real `AQPY_DB_PASSWORD` (not `change_me`)
+* first login is typically `admin` / `admin` and Grafana prompts password reset
 
 # Configuration
 The script reads configuration from environment variables (typically from `.env` when run with `aqi.service`):
@@ -299,6 +321,7 @@ This installer:
 * ensures Postgres databases exist
 * runs idempotent bring-up and optional model bootstrap
 * optional Grafana install and service enable (`--with-grafana`)
+* optional Grafana datasource + dashboard provisioning (`--with-grafana`)
 
 After first run:
 1. verify `.env` credentials/settings

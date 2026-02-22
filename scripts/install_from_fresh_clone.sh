@@ -45,7 +45,7 @@ require_cmd() {
 
 install_grafana() {
   echo "[install] Installing Grafana..."
-  apt-get install -y apt-transport-https software-properties-common wget gpg
+  apt-get install -y apt-transport-https wget gpg ca-certificates
   install -d -m 0755 /etc/apt/keyrings
   if [[ ! -f /etc/apt/keyrings/grafana.gpg ]]; then
     wget -q -O- https://apt.grafana.com/gpg.key | gpg --dearmor >/etc/apt/keyrings/grafana.gpg
@@ -152,6 +152,11 @@ AQPY_APP_DIR="${APP_DIR}" \
 AQPY_DB_NAME_BME="${DB_NAME}" \
 AQPY_DB_NAME_PMS="${PMS_DB_NAME}" \
 "${REPO_ROOT}/scripts/bringup_edge_stack.sh" "${BRINGUP_ARGS[@]}"
+
+if [[ "${RUN_GRAFANA}" -eq 1 ]]; then
+  echo "[install] Provisioning Grafana datasources and dashboard..."
+  AQPY_ENV_FILE="${REPO_ROOT}/.env" "${REPO_ROOT}/scripts/provision_grafana.sh"
+fi
 
 echo "[install] Completed."
 echo "[install] Next: verify .env credentials and run 'sudo reboot' if interfaces were toggled."
