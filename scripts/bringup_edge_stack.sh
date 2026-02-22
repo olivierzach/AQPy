@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-${REPO_ROOT}/.venv/bin/python}"
 DB_NAME="${AQPY_DB_NAME_BME:-bme}"
+PMS_DB_NAME="${AQPY_DB_NAME_PMS:-pms}"
 DB_OS_USER="${AQPY_DB_OS_USER:-postgres}"
 INSTALL_DIR="${AQPY_SYSTEMD_DIR:-/etc/systemd/system}"
 APP_DIR="${AQPY_APP_DIR:-${REPO_ROOT}}"
@@ -34,7 +35,7 @@ Options:
   -h, --help           show help
 
 Environment overrides (optional):
-  PYTHON_BIN, AQPY_DB_NAME_BME, AQPY_SYSTEMD_DIR,
+  PYTHON_BIN, AQPY_DB_NAME_BME, AQPY_DB_NAME_PMS, AQPY_SYSTEMD_DIR,
   AQPY_DB_OS_USER,
   AQPY_APP_DIR, AQPY_APP_USER, AQPY_APP_GROUP,
   AQPY_BRINGUP_WAIT_RETRIES, AQPY_BRINGUP_WAIT_SECONDS
@@ -158,11 +159,24 @@ fi
 
 echo "[bringup] Initializing schema in database '${DB_NAME}'..."
 if [[ "${WAIT_MODE}" -eq 1 ]]; then
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/raw_schema_bme.sql
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/forecast_schema.sql
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/online_learning_schema.sql
 else
+  sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/raw_schema_bme.sql
   sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/forecast_schema.sql
   sudo -u "${DB_OS_USER}" psql "${DB_NAME}" -f sql/online_learning_schema.sql
+fi
+
+echo "[bringup] Initializing schema in database '${PMS_DB_NAME}'..."
+if [[ "${WAIT_MODE}" -eq 1 ]]; then
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/raw_schema_pms.sql
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/forecast_schema.sql
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/online_learning_schema.sql
+else
+  sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/raw_schema_pms.sql
+  sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/forecast_schema.sql
+  sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/online_learning_schema.sql
 fi
 
 echo "[bringup] Installing systemd units into ${INSTALL_DIR}..."

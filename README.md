@@ -98,8 +98,10 @@ This repo includes a modular edge-ML forecasting pipeline.
 ## Initialize Forecast Tables
 Run once per database used for forecasting:
 ```bash
+psql bme -f sql/raw_schema_bme.sql
 psql bme -f sql/forecast_schema.sql
 psql bme -f sql/online_learning_schema.sql
+psql pms -f sql/raw_schema_pms.sql
 psql pms -f sql/forecast_schema.sql
 psql pms -f sql/online_learning_schema.sql
 ```

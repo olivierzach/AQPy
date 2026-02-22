@@ -150,6 +150,7 @@ AQPY_APP_USER="${APP_USER}" \
 AQPY_APP_GROUP="${APP_GROUP}" \
 AQPY_APP_DIR="${APP_DIR}" \
 AQPY_DB_NAME_BME="${DB_NAME}" \
+AQPY_DB_NAME_PMS="${PMS_DB_NAME}" \
 "${REPO_ROOT}/scripts/bringup_edge_stack.sh" "${BRINGUP_ARGS[@]}"
 
 echo "[install] Completed."

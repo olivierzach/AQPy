@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS pi (
+    t TIMESTAMPTZ NOT NULL DEFAULT now(),
+    temperature DOUBLE PRECISION,
+    humidity DOUBLE PRECISION,
+    pressure DOUBLE PRECISION
+);
+
+CREATE INDEX IF NOT EXISTS idx_bme_pi_t_desc ON pi (t DESC);

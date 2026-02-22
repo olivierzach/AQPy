@@ -41,22 +41,33 @@ def main():
 
     results = []
     for database, table, time_col in unique_sources.keys():
-        res = run_retention(
-            database=database,
-            table=table,
-            time_col=time_col,
-            model_name=None,
-            retention_days=args.retention_days,
-            safety_hours=args.safety_hours,
-        )
-        results.append(
-            {
-                "database": database,
-                "table": table,
-                "time_col": time_col,
-                "result": res,
-            }
-        )
+        try:
+            res = run_retention(
+                database=database,
+                table=table,
+                time_col=time_col,
+                model_name=None,
+                retention_days=args.retention_days,
+                safety_hours=args.safety_hours,
+            )
+            results.append(
+                {
+                    "database": database,
+                    "table": table,
+                    "time_col": time_col,
+                    "result": res,
+                }
+            )
+        except Exception as exc:
+            results.append(
+                {
+                    "database": database,
+                    "table": table,
+                    "time_col": time_col,
+                    "status": "failed",
+                    "error": str(exc),
+                }
+            )
     print(json.dumps(results, indent=2, default=str))
 
 

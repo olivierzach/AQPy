@@ -50,12 +50,21 @@ def main():
             if args.horizon_steps > 0
             else int(spec.get("forecast_horizon_steps", 12))
         )
-        res = run_inference(
-            model_path=str(model_path),
-            horizon_steps=horizon,
-            database_override=spec["database"],
-        )
-        results.append({"model_name": spec["model_name"], "result": res})
+        try:
+            res = run_inference(
+                model_path=str(model_path),
+                horizon_steps=horizon,
+                database_override=spec["database"],
+            )
+            results.append({"model_name": spec["model_name"], "result": res})
+        except Exception as exc:
+            results.append(
+                {
+                    "model_name": spec["model_name"],
+                    "status": "failed",
+                    "error": str(exc),
+                }
+            )
     print(json.dumps(results, indent=2, default=str))
 
 
