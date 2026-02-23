@@ -2,6 +2,7 @@
 Repository for scripts and files to read the PMS5003 air quality index sensor and the BME280 temperature/pressure/humidity sensor from a Raspberry Pi. `systemctl` is used to manage the `read_sensors.py` python script. The data is stored into a postgresql database with the timescaledb extension. From there, Grafana is used to plot the data over time. 
 
 ## Operational Docs
+* `SENSORS.md`: sensor overview, key specs, and primary reference links
 * `TROUBLESHOOTING.md`: end-to-end troubleshooting (SSH, DB auth/ownership, schema, sensor serial, Grafana)
 * `REFLASH_AND_LOGIN.md`: reflash + first SSH login checklist
 * `grafana.md`: Grafana background notes
@@ -121,6 +122,7 @@ This repo includes a modular edge-ML forecasting pipeline.
 * `run_forecast_batch.py`: batch inference from `configs/model_specs.json`
 * `run_data_retention_batch.py`: batch retention by unique source table from specs
 * `configs/model_specs.json`: declarative model list (both `bme` and `pms` targets)
+* `validate_model_specs.py`: CLI validator for spec integrity before deployment
 * `sql/forecast_schema.sql`: schema for `predictions` and `model_registry`
 * `sql/online_learning_schema.sql`: schema for online training state and holdout metrics
 * `aqi-train-online.service` + `aqi-train-online.timer`: scheduled batch retraining across all configured models
@@ -150,6 +152,11 @@ python3 train_forecast_model.py \
   --lags 1,2,3,6,12 \
   --model-path models/bme_temperature_model.json \
   --register
+```
+
+## Validate Model Specs (Recommended Before Deploy)
+```bash
+python3 validate_model_specs.py --spec-file configs/model_specs.json
 ```
 
 ## Run One Inference Pass
@@ -364,6 +371,11 @@ cd /home/pi/AQPy
 Include recent logs + serial probe:
 ```bash
 ./scripts/profile_snapshot.sh --with-logs --serial-probe
+```
+
+Standalone PMS serial probe:
+```bash
+./scripts/probe_pms_serial.sh --iterations 30
 ```
 
 Continuous watch (refresh every 30s):

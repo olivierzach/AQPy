@@ -171,15 +171,7 @@ Expected:
 
 Read-test:
 ```bash
-python3 - <<'PY'
-import serial, time
-s = serial.Serial('/dev/serial0', 9600, timeout=2)
-for i in range(20):
-    b = s.read(32)
-    print(i, len(b), b[:2].hex() if len(b) >= 2 else '')
-    time.sleep(0.5)
-s.close()
-PY
+./scripts/probe_pms_serial.sh --iterations 30
 ```
 
 If all reads are zero bytes, recheck PMS wiring/power/TX-RX mapping.
@@ -266,4 +258,16 @@ Profile with logs and serial probe:
 Live watch mode:
 ```bash
 ./scripts/profile_watch.sh --interval 30
+```
+
+## 15) Model Spec Validation Fails
+
+### Symptom
+Batch services fail immediately after spec edits.
+
+### Fix
+Run spec validation locally/on Pi and resolve the reported key/model/type issue:
+```bash
+cd ~/AQPy
+python3 validate_model_specs.py --spec-file configs/model_specs.json
 ```
