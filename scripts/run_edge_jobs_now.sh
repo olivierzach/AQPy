@@ -14,7 +14,7 @@ MODEL_FILTER=""
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--train-only|--forecast-only|--with-retention] [--databases bme,pms] [--models m1,m2]
+Usage: $(basename "$0") [--train-only|--forecast-only|--retention-only|--with-retention] [--databases bme,pms] [--models m1,m2]
 
 Runs AQPy batch jobs immediately without requiring:
   - manual venv activation
@@ -38,6 +38,12 @@ while [[ $# -gt 0 ]]; do
       RUN_TRAIN=0
       RUN_FORECAST=1
       RUN_RETENTION=0
+      shift
+      ;;
+    --retention-only)
+      RUN_TRAIN=0
+      RUN_FORECAST=0
+      RUN_RETENTION=1
       shift
       ;;
     --with-retention)

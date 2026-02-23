@@ -8,7 +8,7 @@ Type=oneshot
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=/home/pi/AQPy/.venv/bin/python /home/pi/AQPy/run_forecast_batch.py --spec-file /home/pi/AQPy/configs/model_specs.json
+ExecStart=/home/pi/AQPy/scripts/run_edge_jobs_now.sh --forecast-only
 User=pi
 Group=pi
 NoNewPrivileges=true
