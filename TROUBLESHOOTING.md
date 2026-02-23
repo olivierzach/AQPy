@@ -271,3 +271,15 @@ Run spec validation locally/on Pi and resolve the reported key/model/type issue:
 cd ~/AQPy
 python3 validate_model_specs.py --spec-file configs/model_specs.json
 ```
+
+## 16) Manual Runs Only Work After `source .venv/bin/activate`
+
+### Symptom
+Manual training/forecast commands fail unless venv is activated and `.env` is sourced.
+
+### Fix
+Use the wrapper script that handles both automatically:
+```bash
+cd ~/AQPy
+./scripts/run_edge_jobs_now.sh --databases bme
+```

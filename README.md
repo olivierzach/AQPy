@@ -383,6 +383,21 @@ Continuous watch (refresh every 30s):
 ./scripts/profile_watch.sh --interval 30
 ```
 
+## Run Batch Jobs Manually (No venv/source needed)
+Use wrapper script to run immediate train/forecast from SSH shell:
+```bash
+cd /home/pi/AQPy
+./scripts/run_edge_jobs_now.sh
+```
+
+Examples:
+```bash
+./scripts/run_edge_jobs_now.sh --databases bme
+./scripts/run_edge_jobs_now.sh --train-only --databases bme
+./scripts/run_edge_jobs_now.sh --forecast-only --databases bme
+./scripts/run_edge_jobs_now.sh --with-retention
+```
+
 ## Grafana Metrics Queries (Examples)
 Holdout MAE trend:
 ```sql
