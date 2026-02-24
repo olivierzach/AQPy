@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from aqpy.forecast.specs import load_model_specs
+from aqpy.forecast.specs import filter_specs, load_model_specs
 
 
 def write_specs(payload):
@@ -122,6 +122,43 @@ class TestModelSpecsValidation(unittest.TestCase):
                 load_model_specs(path)
         finally:
             td.cleanup()
+
+    def test_filter_specs_by_target_and_family(self):
+        specs = [
+            {
+                "model_name": "aqpy_nn_temperature",
+                "model_type": "nn_mlp",
+                "database": "bme",
+                "table": "pi",
+                "time_col": "t",
+                "target": "temperature",
+                "model_path": "models/bme_temperature_nn.json",
+            },
+            {
+                "model_name": "aqpy_ar_humidity",
+                "model_type": "adaptive_ar",
+                "database": "bme",
+                "table": "pi",
+                "time_col": "t",
+                "target": "humidity",
+                "model_path": "models/bme_humidity_ar.json",
+            },
+            {
+                "model_name": "aqpy_rnn_pressure",
+                "model_type": "rnn_lite_gru",
+                "database": "bme",
+                "table": "pi",
+                "time_col": "t",
+                "target": "pressure",
+                "model_path": "models/bme_pressure_rnn.json",
+            },
+        ]
+        filtered = filter_specs(
+            specs,
+            targets=["pressure", "temperature"],
+            families=["rnn", "nn"],
+        )
+        self.assertEqual({s["model_name"] for s in filtered}, {"aqpy_nn_temperature", "aqpy_rnn_pressure"})
 
 
 if __name__ == "__main__":

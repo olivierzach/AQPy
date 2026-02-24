@@ -398,6 +398,7 @@ Examples:
 ./scripts/run_edge_jobs_now.sh --databases bme
 ./scripts/run_edge_jobs_now.sh --train-only --databases bme
 ./scripts/run_edge_jobs_now.sh --forecast-only --databases bme
+./scripts/run_edge_jobs_now.sh --train-only --families rnn --targets temperature,humidity,pressure --databases bme
 ./scripts/run_edge_jobs_now.sh --with-retention
 ./scripts/run_edge_jobs_now.sh --with-backfill --backfill-hours 48 --databases bme
 ```
@@ -406,6 +407,8 @@ Backfill behavior:
 * re-scores historical windows using currently saved model artifacts
 * writes one-step predictions (`horizon_step=1`) at historical timestamps
 * idempotent by default: existing rows for the same model/version/window are replaced
+* selective filters (`--models`, `--databases`, `--targets`, `--families`) apply uniformly to train/forecast/backfill
+* `online_training_metrics` are written only for the filtered training specs (so metrics stay in sync with selected runs)
 
 ## Grafana Metrics Queries (Examples)
 Holdout MAE trend:

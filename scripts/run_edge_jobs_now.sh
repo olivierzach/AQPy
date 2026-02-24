@@ -12,11 +12,13 @@ RUN_RETENTION=0
 RUN_BACKFILL=0
 DB_FILTER=""
 MODEL_FILTER=""
+TARGET_FILTER=""
+FAMILY_FILTER=""
 BACKFILL_HOURS="${AQPY_BACKFILL_HOURS:-48}"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--train-only|--forecast-only|--retention-only|--with-retention|--with-backfill] [--databases bme,pms] [--models m1,m2]
+Usage: $(basename "$0") [--train-only|--forecast-only|--retention-only|--with-retention|--with-backfill] [--databases bme,pms] [--models m1,m2] [--targets t1,t2] [--families nn,ar,rnn]
 
 Runs AQPy batch jobs immediately without requiring:
   - manual venv activation
@@ -69,6 +71,14 @@ while [[ $# -gt 0 ]]; do
       MODEL_FILTER="${2:-}"
       shift 2
       ;;
+    --targets)
+      TARGET_FILTER="${2:-}"
+      shift 2
+      ;;
+    --families)
+      FAMILY_FILTER="${2:-}"
+      shift 2
+      ;;
     -h|--help)
       usage
       exit 0
@@ -105,6 +115,12 @@ if [[ -n "${DB_FILTER}" ]]; then
 fi
 if [[ -n "${MODEL_FILTER}" ]]; then
   COMMON_ARGS+=(--models "${MODEL_FILTER}")
+fi
+if [[ -n "${TARGET_FILTER}" ]]; then
+  COMMON_ARGS+=(--targets "${TARGET_FILTER}")
+fi
+if [[ -n "${FAMILY_FILTER}" ]]; then
+  COMMON_ARGS+=(--families "${FAMILY_FILTER}")
 fi
 
 cd "${REPO_ROOT}"

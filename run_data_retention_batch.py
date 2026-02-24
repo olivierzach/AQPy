@@ -20,6 +20,8 @@ def parse_args():
     parser.add_argument("--spec-file", default="configs/model_specs.json")
     parser.add_argument("--models", default="")
     parser.add_argument("--databases", default="")
+    parser.add_argument("--targets", default="")
+    parser.add_argument("--families", default="")
     parser.add_argument("--retention-days", type=int, default=14)
     parser.add_argument("--safety-hours", type=int, default=12)
     return parser.parse_args()
@@ -32,6 +34,8 @@ def main():
         specs,
         model_names=parse_csv(args.models),
         databases=parse_csv(args.databases),
+        targets=parse_csv(args.targets),
+        families=[x.lower() for x in parse_csv(args.families)],
     )
 
     unique_sources = {}

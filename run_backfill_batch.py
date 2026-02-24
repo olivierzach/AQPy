@@ -21,6 +21,8 @@ def parse_args():
     parser.add_argument("--spec-file", default="configs/model_specs.json")
     parser.add_argument("--models", default="")
     parser.add_argument("--databases", default="")
+    parser.add_argument("--targets", default="")
+    parser.add_argument("--families", default="")
     parser.add_argument("--backfill-hours", type=int, default=48)
     parser.add_argument("--append", action="store_true", help="Do not replace existing rows in window.")
     return parser.parse_args()
@@ -33,6 +35,8 @@ def main():
         specs,
         model_names=parse_csv(args.models),
         databases=parse_csv(args.databases),
+        targets=parse_csv(args.targets),
+        families=[x.lower() for x in parse_csv(args.families)],
     )
     results = []
     for spec in specs:

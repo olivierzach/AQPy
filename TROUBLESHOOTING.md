@@ -310,3 +310,9 @@ cd ~/AQPy
 ```
 
 This replaces existing `horizon_step=1` rows for the same model/version/window, so reruns are safe.
+
+You can isolate by target/family and keep training metrics aligned:
+```bash
+./scripts/run_edge_jobs_now.sh --train-only --databases bme --targets temperature --families rnn
+./scripts/run_edge_jobs_now.sh --with-backfill --backfill-hours 72 --databases bme --targets temperature --families rnn
+```

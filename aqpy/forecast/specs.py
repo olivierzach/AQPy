@@ -15,6 +15,15 @@ REQUIRED_KEYS = {
 
 ALLOWED_MODEL_TYPES = {"nn_mlp", "adaptive_ar", "rnn_lite_gru"}
 IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+FAMILY_TO_MODEL_TYPES = {
+    "nn": {"nn_mlp"},
+    "ar": {"adaptive_ar"},
+    "rnn": {"rnn_lite_gru"},
+    # Also allow explicit model_type values as family filters.
+    "nn_mlp": {"nn_mlp"},
+    "adaptive_ar": {"adaptive_ar"},
+    "rnn_lite_gru": {"rnn_lite_gru"},
+}
 
 
 def _is_identifier(value):
@@ -144,7 +153,7 @@ def load_model_specs(spec_path):
     return data
 
 
-def filter_specs(specs, model_names=None, databases=None):
+def filter_specs(specs, model_names=None, databases=None, targets=None, families=None):
     selected = specs
     if model_names:
         allowed = set(model_names)
@@ -152,4 +161,12 @@ def filter_specs(specs, model_names=None, databases=None):
     if databases:
         allowed_db = set(databases)
         selected = [s for s in selected if s["database"] in allowed_db]
+    if targets:
+        allowed_targets = set(targets)
+        selected = [s for s in selected if s["target"] in allowed_targets]
+    if families:
+        allowed_types = set()
+        for family in families:
+            allowed_types.update(FAMILY_TO_MODEL_TYPES.get(family, set()))
+        selected = [s for s in selected if s["model_type"] in allowed_types]
     return selected
