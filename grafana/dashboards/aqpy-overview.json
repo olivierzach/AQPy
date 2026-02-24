@@ -69,21 +69,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM predictions\nWHERE model_name = 'aqpy_nn_temperature'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM predictions\nWHERE model_name = 'aqpy_ar_temperature'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM predictions\nWHERE model_name = 'aqpy_rnn_temperature'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
@@ -137,21 +137,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM predictions\nWHERE model_name = 'aqpy_nn_humidity'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM predictions\nWHERE model_name = 'aqpy_ar_humidity'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM predictions\nWHERE model_name = 'aqpy_rnn_humidity'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
@@ -205,21 +205,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM predictions\nWHERE model_name = 'aqpy_nn_pressure'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM predictions\nWHERE model_name = 'aqpy_ar_pressure'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM predictions\nWHERE model_name = 'aqpy_rnn_pressure'\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
@@ -266,21 +266,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"nn\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_nn_temperature'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"nn\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_nn_temperature' AND source_target_col = 'temperature'\nORDER BY recorded_at;",
           "refId": "A"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"adaptive_ar\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_ar_temperature'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"adaptive_ar\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_ar_temperature' AND source_target_col = 'temperature'\nORDER BY recorded_at;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"gru_lite\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_rnn_temperature'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"gru_lite\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_rnn_temperature' AND source_target_col = 'temperature'\nORDER BY recorded_at;",
           "refId": "C"
         }
       ],
@@ -327,21 +327,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"nn\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_nn_humidity'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"nn\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_nn_humidity' AND source_target_col = 'humidity'\nORDER BY recorded_at;",
           "refId": "A"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"adaptive_ar\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_ar_humidity'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"adaptive_ar\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_ar_humidity' AND source_target_col = 'humidity'\nORDER BY recorded_at;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"gru_lite\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_rnn_humidity'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"gru_lite\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_rnn_humidity' AND source_target_col = 'humidity'\nORDER BY recorded_at;",
           "refId": "C"
         }
       ],
@@ -388,21 +388,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"nn\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_nn_pressure'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"nn\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_nn_pressure' AND source_target_col = 'pressure'\nORDER BY recorded_at;",
           "refId": "A"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"adaptive_ar\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_ar_pressure'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"adaptive_ar\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_ar_pressure' AND source_target_col = 'pressure'\nORDER BY recorded_at;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"gru_lite\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_rnn_pressure'\nORDER BY recorded_at;",
+          "rawSql": "SELECT recorded_at AS \"time\", holdout_mae AS \"gru_lite\"\nFROM online_training_metrics\nWHERE model_name = 'aqpy_rnn_pressure' AND source_target_col = 'pressure'\nORDER BY recorded_at;",
           "refId": "C"
         }
       ],
