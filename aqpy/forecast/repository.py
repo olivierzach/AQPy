@@ -139,3 +139,44 @@ def insert_predictions(conn, payload_rows):
     with conn.cursor() as cur:
         cur.executemany(query, payload_rows)
     conn.commit()
+
+
+def delete_predictions_window(
+    conn,
+    model_name,
+    model_version,
+    source_database,
+    source_table,
+    target,
+    start_ts,
+    end_ts,
+    horizon_step=1,
+):
+    query = """
+    DELETE FROM predictions
+    WHERE model_name = %s
+      AND model_version = %s
+      AND source_database = %s
+      AND source_table = %s
+      AND target = %s
+      AND horizon_step = %s
+      AND predicted_for >= %s
+      AND predicted_for <= %s
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            query,
+            (
+                model_name,
+                model_version,
+                source_database,
+                source_table,
+                target,
+                int(horizon_step),
+                start_ts,
+                end_ts,
+            ),
+        )
+        deleted = cur.rowcount
+    conn.commit()
+    return int(deleted)

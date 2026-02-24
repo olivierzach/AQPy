@@ -9,12 +9,14 @@ SPEC_FILE="${AQPY_MODEL_SPEC_FILE:-${REPO_ROOT}/configs/model_specs.json}"
 RUN_TRAIN=1
 RUN_FORECAST=1
 RUN_RETENTION=0
+RUN_BACKFILL=0
 DB_FILTER=""
 MODEL_FILTER=""
+BACKFILL_HOURS="${AQPY_BACKFILL_HOURS:-48}"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--train-only|--forecast-only|--retention-only|--with-retention] [--databases bme,pms] [--models m1,m2]
+Usage: $(basename "$0") [--train-only|--forecast-only|--retention-only|--with-retention|--with-backfill] [--databases bme,pms] [--models m1,m2]
 
 Runs AQPy batch jobs immediately without requiring:
   - manual venv activation
@@ -23,6 +25,7 @@ Runs AQPy batch jobs immediately without requiring:
 Defaults:
   - train + forecast
   - no retention
+  - no backfill
 EOF
 }
 
@@ -49,6 +52,14 @@ while [[ $# -gt 0 ]]; do
     --with-retention)
       RUN_RETENTION=1
       shift
+      ;;
+    --with-backfill)
+      RUN_BACKFILL=1
+      shift
+      ;;
+    --backfill-hours)
+      BACKFILL_HOURS="${2:-48}"
+      shift 2
       ;;
     --databases)
       DB_FILTER="${2:-}"
@@ -112,6 +123,11 @@ fi
 if [[ "${RUN_RETENTION}" -eq 1 ]]; then
   echo "[run-now] Retention batch..."
   "${PYTHON_BIN}" run_data_retention_batch.py "${COMMON_ARGS[@]}"
+fi
+
+if [[ "${RUN_BACKFILL}" -eq 1 ]]; then
+  echo "[run-now] Backfill batch (${BACKFILL_HOURS}h)..."
+  "${PYTHON_BIN}" run_backfill_batch.py "${COMMON_ARGS[@]}" --backfill-hours "${BACKFILL_HOURS}"
 fi
 
 echo "[run-now] Complete."

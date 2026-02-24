@@ -121,6 +121,7 @@ This repo includes a modular edge-ML forecasting pipeline.
 * `run_online_training_batch.py`: batch retraining from `configs/model_specs.json`
 * `run_forecast_batch.py`: batch inference from `configs/model_specs.json`
 * `run_data_retention_batch.py`: batch retention by unique source table from specs
+* `run_backfill_batch.py`: idempotent historical one-step backfill from model artifacts
 * `configs/model_specs.json`: declarative model list (both `bme` and `pms` targets)
 * `validate_model_specs.py`: CLI validator for spec integrity before deployment
 * `sql/forecast_schema.sql`: schema for `predictions` and `model_registry`
@@ -398,7 +399,13 @@ Examples:
 ./scripts/run_edge_jobs_now.sh --train-only --databases bme
 ./scripts/run_edge_jobs_now.sh --forecast-only --databases bme
 ./scripts/run_edge_jobs_now.sh --with-retention
+./scripts/run_edge_jobs_now.sh --with-backfill --backfill-hours 48 --databases bme
 ```
+
+Backfill behavior:
+* re-scores historical windows using currently saved model artifacts
+* writes one-step predictions (`horizon_step=1`) at historical timestamps
+* idempotent by default: existing rows for the same model/version/window are replaced
 
 ## Grafana Metrics Queries (Examples)
 Holdout MAE trend:

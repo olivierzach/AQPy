@@ -300,3 +300,13 @@ Use the wrapper script that handles both automatically:
 cd ~/AQPy
 ./scripts/run_edge_jobs_now.sh --databases bme
 ```
+
+## 17) Need To Re-Score Historical Gaps
+
+Use idempotent backfill from saved model artifacts:
+```bash
+cd ~/AQPy
+./scripts/run_edge_jobs_now.sh --with-backfill --backfill-hours 48 --databases bme
+```
+
+This replaces existing `horizon_step=1` rows for the same model/version/window, so reruns are safe.
