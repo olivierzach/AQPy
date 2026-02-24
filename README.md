@@ -253,6 +253,7 @@ Parameterization notes:
 * `--history-hours` controls database read window.
 * `--max-train-rows` caps memory/compute by trimming to the most recent rows in that window.
 * `--burn-in-rows` blocks model updates until enough data is accumulated.
+* `--min-new-rows` gates how often retraining runs; if new rows are below threshold, run result is `skipped`.
 * For AR/NN lag models use `--lags`; for GRU-lite use `--seq-len`.
 * Maximum effective lookback is bounded by what exists in the database and these caps.
 
