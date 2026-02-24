@@ -134,7 +134,8 @@
             "pointSize": 2,
             "showPoints": "auto"
           },
-          "unit": "pressurembar"
+          "unit": "pressurembar",
+          "decimals": 4
         },
         "overrides": []
       },
