@@ -69,21 +69,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_nn_temperature'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_temperature'\n    AND target = 'temperature'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_ar_temperature'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_temperature'\n    AND target = 'temperature'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_rnn_temperature'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_temperature'\n    AND target = 'temperature'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
@@ -137,21 +137,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_nn_humidity'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_humidity'\n    AND target = 'humidity'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_ar_humidity'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_humidity'\n    AND target = 'humidity'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_rnn_humidity'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_humidity'\n    AND target = 'humidity'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
@@ -206,21 +206,21 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_nn_pressure'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pressure'\n    AND target = 'pressure'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_ar_pressure'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pressure'\n    AND target = 'pressure'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "WITH latest_model AS (\n  SELECT model_version\n  FROM model_registry\n  WHERE model_name = 'aqpy_rnn_pressure'\n  ORDER BY trained_at DESC\n  LIMIT 1\n), ranked AS (\n  SELECT predicted_for, yhat, model_version, generated_at,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pressure'\n    AND target = 'pressure'\n    AND horizon_step = 1\n), chosen AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE model_version = (SELECT model_version FROM latest_model)\n), fallback AS (\n  SELECT predicted_for, yhat\n  FROM ranked\n  WHERE rn = 1\n)\nSELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT * FROM chosen\n  UNION ALL\n  SELECT * FROM fallback\n  WHERE NOT EXISTS (SELECT 1 FROM chosen)\n) x\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
