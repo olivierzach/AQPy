@@ -337,6 +337,7 @@ This installer:
 * creates `.env` from template if missing
 * ensures Postgres databases exist
 * runs idempotent bring-up and optional model bootstrap
+* applies DB ownership/privileges for app role and prepares writable `models/` artifacts directory
 * optional Grafana install and service enable (`--with-grafana`)
 * optional Grafana datasource + dashboard provisioning (`--with-grafana`)
 

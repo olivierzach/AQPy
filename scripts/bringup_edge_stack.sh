@@ -12,6 +12,7 @@ INSTALL_DIR="${AQPY_SYSTEMD_DIR:-/etc/systemd/system}"
 APP_DIR="${AQPY_APP_DIR:-${REPO_ROOT}}"
 APP_USER="${AQPY_APP_USER:-${SUDO_USER:-pi}}"
 APP_GROUP="${AQPY_APP_GROUP:-${APP_USER}}"
+DB_APP_USER="${AQPY_DB_APP_USER:-}"
 WAIT_RETRIES="${AQPY_BRINGUP_WAIT_RETRIES:-10}"
 WAIT_SECONDS="${AQPY_BRINGUP_WAIT_SECONDS:-6}"
 RUN_BOOTSTRAP=0
@@ -36,7 +37,7 @@ Options:
 
 Environment overrides (optional):
   PYTHON_BIN, AQPY_DB_NAME_BME, AQPY_DB_NAME_PMS, AQPY_SYSTEMD_DIR,
-  AQPY_DB_OS_USER,
+  AQPY_DB_OS_USER, AQPY_DB_APP_USER,
   AQPY_APP_DIR, AQPY_APP_USER, AQPY_APP_GROUP,
   AQPY_BRINGUP_WAIT_RETRIES, AQPY_BRINGUP_WAIT_SECONDS
 EOF
@@ -79,6 +80,23 @@ render_unit() {
     -e "s/^User=.*/User=${APP_USER}/" \
     -e "s/^Group=.*/Group=${APP_GROUP}/" \
     "${src}" > "${dst}"
+}
+
+apply_db_permissions() {
+  local database="$1"
+  local app_user="$2"
+  sudo -u "${DB_OS_USER}" psql -v ON_ERROR_STOP=1 "${database}" <<SQL
+ALTER DATABASE ${database} OWNER TO ${app_user};
+ALTER TABLE IF EXISTS pi OWNER TO ${app_user};
+ALTER TABLE IF EXISTS predictions OWNER TO ${app_user};
+ALTER TABLE IF EXISTS model_registry OWNER TO ${app_user};
+ALTER TABLE IF EXISTS online_training_state OWNER TO ${app_user};
+ALTER TABLE IF EXISTS online_training_metrics OWNER TO ${app_user};
+ALTER TABLE IF EXISTS retention_runs OWNER TO ${app_user};
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${app_user};
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${app_user};
+GRANT CREATE ON SCHEMA public TO ${app_user};
+SQL
 }
 
 while [[ $# -gt 0 ]]; do
@@ -125,6 +143,15 @@ fi
 
 cd "${REPO_ROOT}"
 
+if [[ -z "${DB_APP_USER}" && -f "${REPO_ROOT}/.env" ]]; then
+  # shellcheck disable=SC1090
+  set -a
+  source "${REPO_ROOT}/.env"
+  set +a
+  DB_APP_USER="${AQPY_DB_USER:-}"
+fi
+DB_APP_USER="${DB_APP_USER:-${APP_USER}}"
+
 if [[ ! -d /run/systemd/system ]]; then
   echo "systemd does not appear to be active on this host." >&2
   exit 1
@@ -149,6 +176,12 @@ done
 
 if ! id -u "${APP_USER}" >/dev/null 2>&1; then
   echo "Configured AQPY_APP_USER does not exist: ${APP_USER}" >&2
+  exit 1
+fi
+
+if ! sudo -u "${DB_OS_USER}" psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${DB_APP_USER}'" | grep -q 1; then
+  echo "Configured DB app role does not exist: ${DB_APP_USER}" >&2
+  echo "Create the role first (and password), then re-run bring-up." >&2
   exit 1
 fi
 
@@ -178,6 +211,18 @@ else
   sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/forecast_schema.sql
   sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/online_learning_schema.sql
 fi
+
+echo "[bringup] Applying DB ownership/privileges for app role '${DB_APP_USER}'..."
+if [[ "${WAIT_MODE}" -eq 1 ]]; then
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" apply_db_permissions "${DB_NAME}" "${DB_APP_USER}"
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" apply_db_permissions "${PMS_DB_NAME}" "${DB_APP_USER}"
+else
+  apply_db_permissions "${DB_NAME}" "${DB_APP_USER}"
+  apply_db_permissions "${PMS_DB_NAME}" "${DB_APP_USER}"
+fi
+
+echo "[bringup] Ensuring writable model artifact directory..."
+install -d -m 0755 -o "${APP_USER}" -g "${APP_GROUP}" "${APP_DIR}/models"
 
 echo "[bringup] Installing systemd units into ${INSTALL_DIR}..."
 for file in "${SYSTEMD_FILES[@]}"; do

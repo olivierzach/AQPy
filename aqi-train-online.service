@@ -27,4 +27,5 @@ RestrictSUIDSGID=true
 RestrictRealtime=true
 RestrictNamespaces=true
 SystemCallArchitectures=native
+ReadWritePaths=/home/pi/AQPy/models
 UMask=0077

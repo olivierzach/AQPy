@@ -139,6 +139,10 @@ GRANT CREATE ON SCHEMA public TO pi;
 SQL
 ```
 
+Note:
+- Current `scripts/bringup_edge_stack.sh` applies these ownership/grants automatically for both `bme` and `pms`.
+- Re-run bring-up after pulling latest repo.
+
 ## 8) Online Training Fails With `relation "pi" does not exist`
 
 ### Symptom
@@ -147,6 +151,19 @@ SQL
 ### Fix
 Raw sensor tables were missing. Re-run bring-up (new scripts create raw + forecast schemas in both DBs):
 ```bash
+sudo ./scripts/bringup_edge_stack.sh --wait
+```
+
+## 8b) Online Training Fails With `Read-only file system: models/...json`
+
+### Symptom
+Training service cannot write model artifacts.
+
+### Fix
+Pull latest repo and rerun bring-up. The unit now includes write access for model artifacts and bring-up ensures `models/` directory ownership:
+```bash
+cd ~/AQPy
+git pull
 sudo ./scripts/bringup_edge_stack.sh --wait
 ```
 
