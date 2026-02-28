@@ -218,6 +218,27 @@ See `aqpy/ingest/pms5003.py` `read()`.
 2. Check for electrical noise/loose jumper wires.
 3. Confirm sensor read timeout is not too aggressive for current conditions.
 
+## 9c) Ingestion Logs `valid PMS5003 frame not found before timeout` or `no valid PMS5003 frames collected during averaging window`
+
+### Symptom
+PMS ingest logs show timeout-like errors during a cycle, for example:
+- `RuntimeError: valid PMS5003 frame not found before timeout`
+- `RuntimeError: no valid PMS5003 frames collected during averaging window`
+
+### Meaning
+No complete valid PMS frame was available during the read window.
+This can happen intermittently with serial jitter/noise and does not necessarily indicate permanent sensor failure.
+
+### Current Behavior
+`aqpy/ingest/pms5003.py` now tolerates transient read failures inside `averaged_read()`
+and only fails PMS for that cycle when zero valid frames are collected for the full averaging window.
+
+### If It Happens Often
+1. Keep PMS powered at stable 5V and re-seat jumper wires.
+2. Recheck UART mapping (`PMS TX -> Pi RX`, `PMS RX -> Pi TX`) and serial-console disablement.
+3. Reduce electrical noise (shorter wires, common ground, avoid loose dupont leads).
+4. Consider increasing sampling window (`AQPY_PMS_AVG_TIME`) so at least one valid frame is likely per cycle.
+
 ## 10) Grafana Package Not Found
 
 ### Symptom

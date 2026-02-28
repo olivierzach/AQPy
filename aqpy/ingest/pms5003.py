@@ -77,14 +77,24 @@ class PMS5003:
             self.wake()
 
         start = time.time()
-        count = 1
-        data = self.read()
+        count = 0
+        data = None
         while time.time() - start < avg_time:
-            sample = self.read()
+            try:
+                sample = self.read()
+            except RuntimeError:
+                continue
+
+            if data is None:
+                data = sample
+            else:
+                for key, values in data.items():
+                    for idx in range(len(values)):
+                        data[key][idx] += sample[key][idx]
             count += 1
-            for key, values in data.items():
-                for idx in range(len(values)):
-                    data[key][idx] += sample[key][idx]
+
+        if count == 0:
+            raise RuntimeError("no valid PMS5003 frames collected during averaging window")
 
         for key, values in data.items():
             for idx in range(len(values)):

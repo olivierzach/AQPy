@@ -64,6 +64,37 @@ class TestPMS5003(unittest.TestCase):
         ):
             pms.read()
 
+    def test_averaged_read_tolerates_transient_runtime_error(self):
+        serial = FakeSerial()
+        pms = PMS5003(serial, startup_delay=0)
+        sample = {"pm_st": [10, 20, 30], "pm_en": [40, 50, 60], "hist": [1, 2, 3, 4, 5, 6]}
+        calls = {"n": 0}
+
+        def fake_read():
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("valid PMS5003 frame not found before timeout")
+            return {"pm_st": sample["pm_st"][:], "pm_en": sample["pm_en"][:], "hist": sample["hist"][:]}
+
+        pms.read = fake_read
+        data = pms.averaged_read(avg_time=0.1)
+        self.assertEqual(data["pm_st"], [10, 20, 30])
+        self.assertEqual(data["pm_en"], [40, 50, 60])
+        self.assertEqual(data["hist"], [1, 2, 3, 4, 5, 6])
+
+    def test_averaged_read_raises_when_no_valid_frames(self):
+        serial = FakeSerial()
+        pms = PMS5003(serial, startup_delay=0)
+
+        def always_fail():
+            raise RuntimeError("valid PMS5003 frame not found before timeout")
+
+        pms.read = always_fail
+        with self.assertRaisesRegex(
+            RuntimeError, "no valid PMS5003 frames collected during averaging window"
+        ):
+            pms.averaged_read(avg_time=0.01)
+
 
 if __name__ == "__main__":
     unittest.main()
