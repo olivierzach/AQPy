@@ -172,6 +172,7 @@ class TestModelSpecsValidation(unittest.TestCase):
             "pm10_en",
             "pm25_en",
             "pm100_en",
+            "aqi_pm",
             "p1",
             "p2",
             "p3",

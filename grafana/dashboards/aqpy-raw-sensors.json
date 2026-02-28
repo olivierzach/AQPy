@@ -259,6 +259,54 @@
       ],
       "title": "Raw Particle Counts (p1..p6)",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 8,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", aqi_pm AS \"aqi_pm\"\nFROM pms_aqi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        }
+      ],
+      "title": "Derived AQI (PM2.5/PM10)",
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
@@ -280,6 +328,6 @@
   "timezone": "",
   "title": "AQPy Raw Sensors",
   "uid": "aqpy-raw",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

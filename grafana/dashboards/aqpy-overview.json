@@ -1238,6 +1238,75 @@
       ],
       "title": "PMS p6: Actual vs All Models",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 48
+      },
+      "id": 19,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", aqi_pm AS \"actual\"\nFROM pms_aqi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS aqi_pm: Actual vs All Models",
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
@@ -1259,6 +1328,6 @@
   "timezone": "",
   "title": "AQPy Edge Sensors + Forecasts",
   "uid": "aqpy-overview",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }

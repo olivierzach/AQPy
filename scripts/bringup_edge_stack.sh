@@ -204,10 +204,12 @@ fi
 echo "[bringup] Initializing schema in database '${PMS_DB_NAME}'..."
 if [[ "${WAIT_MODE}" -eq 1 ]]; then
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/raw_schema_pms.sql
+  retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/derived_schema_pms.sql
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/forecast_schema.sql
   retry_cmd "${WAIT_RETRIES}" "${WAIT_SECONDS}" sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/online_learning_schema.sql
 else
   sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/raw_schema_pms.sql
+  sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/derived_schema_pms.sql
   sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/forecast_schema.sql
   sudo -u "${DB_OS_USER}" psql "${PMS_DB_NAME}" -f sql/online_learning_schema.sql
 fi
