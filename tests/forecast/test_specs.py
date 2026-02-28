@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+from collections import defaultdict
 from pathlib import Path
 
 from aqpy.forecast.specs import filter_specs, load_model_specs
@@ -159,6 +160,39 @@ class TestModelSpecsValidation(unittest.TestCase):
             families=["rnn", "nn"],
         )
         self.assertEqual({s["model_name"] for s in filtered}, {"aqpy_nn_temperature", "aqpy_rnn_pressure"})
+
+    def test_repo_specs_cover_all_pms_targets_for_all_families(self):
+        repo_root = Path(__file__).resolve().parents[2]
+        specs = load_model_specs(repo_root / "configs" / "model_specs.json")
+
+        expected_targets = {
+            "pm10_st",
+            "pm25_st",
+            "pm100_st",
+            "pm10_en",
+            "pm25_en",
+            "pm100_en",
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p5",
+            "p6",
+        }
+        expected_model_types = {"nn_mlp", "adaptive_ar", "rnn_lite_gru"}
+
+        coverage = defaultdict(set)
+        for spec in specs:
+            if spec["database"] == "pms":
+                coverage[spec["target"]].add(spec["model_type"])
+
+        self.assertEqual(set(coverage.keys()), expected_targets)
+        for target in expected_targets:
+            self.assertEqual(
+                coverage[target],
+                expected_model_types,
+                msg=f"Incomplete PMS model coverage for target '{target}'",
+            )
 
 
 if __name__ == "__main__":
