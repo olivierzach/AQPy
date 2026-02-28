@@ -193,6 +193,31 @@ Read-test:
 
 If all reads are zero bytes, recheck PMS wiring/power/TX-RX mapping.
 
+## 9b) Ingestion Logs `RuntimeError: second start byte not found`
+
+### Symptom
+Intermittent PMS errors similar to:
+`RuntimeError: second start byte not found`
+followed by later successful samples (for example `{'pms': True, 'bme': True}`).
+
+### Meaning
+Serial data is arriving, but the parser read a `0x42` start byte and the next byte was not `0x4D`.
+This is usually a transient UART frame-boundary/misalignment issue, not a total sensor outage.
+
+### Impact
+- Single PMS read can fail in that cycle.
+- Subsequent cycles often recover automatically.
+
+### Fix
+The PMS parser was updated to resynchronize on bad bytes and keep scanning until a full valid frame
+(`0x42 0x4D` + 30-byte payload + checksum) is found or timeout is reached.
+See `aqpy/ingest/pms5003.py` `read()`.
+
+### If It Still Appears Frequently
+1. Verify serial settings and wiring again (`/dev/serial0`, TX/RX crossed, stable 5V power).
+2. Check for electrical noise/loose jumper wires.
+3. Confirm sensor read timeout is not too aggressive for current conditions.
+
 ## 10) Grafana Package Not Found
 
 ### Symptom
