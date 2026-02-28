@@ -30,37 +30,46 @@ class PMS5003:
         time.sleep(self.cmd_delay)
 
     def read(self):
-        st = time.time()
-        found = False
-        while time.time() - st < self.timeout:
-            first = self.serial.read(1)
-            if len(first) == 0:
+        deadline = time.time() + self.timeout
+        found_first = False
+        while time.time() < deadline:
+            b = self.serial.read(1)
+            if len(b) == 0:
                 continue
-            if first[0] == 0x42:
-                found = True
-                break
 
-        if not found:
-            raise RuntimeError("start byte not found")
+            byte = b[0]
+            if not found_first:
+                if byte == 0x42:
+                    found_first = True
+                continue
 
-        second = self.serial.read(1)
-        if len(second) == 0 or second[0] != 0x4D:
-            raise RuntimeError("second start byte not found")
+            if byte == 0x42:
+                # Keep searching while treating this as a new potential first byte.
+                found_first = True
+                continue
 
-        payload = self.serial.read(30)
-        if len(payload) != 30:
-            raise RuntimeError("read wrong length")
+            if byte != 0x4D:
+                found_first = False
+                continue
 
-        parsed = struct.unpack(">15H", payload)
-        checksum = sum(payload[:-2]) + 0x42 + 0x4D
-        if checksum != parsed[-1]:
-            raise RuntimeError("checksum problem")
+            payload = self.serial.read(30)
+            if len(payload) != 30:
+                found_first = False
+                continue
 
-        return {
-            "pm_st": list(parsed[1:4]),
-            "pm_en": list(parsed[4:7]),
-            "hist": list(parsed[7:13]),
-        }
+            parsed = struct.unpack(">15H", payload)
+            checksum = sum(payload[:-2]) + 0x42 + 0x4D
+            if checksum != parsed[-1]:
+                found_first = False
+                continue
+
+            return {
+                "pm_st": list(parsed[1:4]),
+                "pm_en": list(parsed[4:7]),
+                "hist": list(parsed[7:13]),
+            }
+
+        raise RuntimeError("valid PMS5003 frame not found before timeout")
 
     def averaged_read(self, avg_time=10):
         prev_status = self.status
