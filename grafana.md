@@ -17,3 +17,17 @@ Find the raspberry pi's local ip address. You could check your router's list of 
 
 # Dashboard Setup
 I have added four plots and three statistics to the grafana dashboard. The plots of temperature, humidity, and AQI use the timescaledb function `time_bucket` to plot averages over a window dependent interval. The width of the interval is determined by the `PPI` (points per interval) variable accessed by clicking the gear icon in top right corner of the dashboard. The default is to plot 50 points. Some amount of averaging is required to smooth the sensor data. The fourth plot, "Sensor Readings per Hour", should reliably read 60. This indicates the raspberry pi is reading the sensors once per minute without errors. This frequency is defined in `read_sensors.py`. 
+
+## Derived AQI Source
+AQI panels use derived PMS view data:
+- `pms_aqi` (backed by `derived.pms_aqi`)
+- Derived from `pms.pi.pm25_st` and `pms.pi.pm10_st` with EPA breakpoint interpolation
+
+Why view-based:
+- No raw-table mutation
+- Historical backfill is automatic (all past rows are queryable as AQI)
+- No dedicated ETL timer required
+
+When to switch to ETL/materialized:
+- If AQI queries become heavy enough that on-read computation becomes a bottleneck
+- In that case, schedule a refresh/upsert timer and keep raw + derived data paths separate

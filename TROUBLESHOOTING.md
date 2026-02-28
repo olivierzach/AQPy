@@ -362,3 +362,33 @@ You can isolate by target/family and keep training metrics aligned:
 ./scripts/run_edge_jobs_now.sh --train-only --databases bme --targets temperature --families rnn
 ./scripts/run_edge_jobs_now.sh --with-backfill --backfill-hours 72 --databases bme --targets temperature --families rnn
 ```
+
+## 18) AQI Panel Empty Or AQI Models Not Training
+
+### Symptom
+- Raw PMS panels have data, but derived AQI panel/predictions are empty.
+
+### Checks
+Ensure derived schema/view exists:
+```bash
+PGPASSWORD='raspberry' psql -h localhost -U pi -d pms -c "\dv pms_aqi"
+PGPASSWORD='raspberry' psql -h localhost -U pi -d pms -c "select max(t), max(aqi_pm) from pms_aqi;"
+```
+
+Ensure AQI model specs point to `pms_aqi` source:
+```bash
+rg -n '"model_name": "aqpy_.*_aqi_pm"|"table": "pms_aqi"' configs/model_specs.json
+```
+
+### Fix
+Re-apply schema + services:
+```bash
+cd ~/AQPy
+sudo ./scripts/bringup_edge_stack.sh --wait
+sudo ./scripts/provision_grafana.sh
+```
+
+### Notes
+- AQI is derived by SQL view (`pms_aqi`), not written into raw `pms.pi`.
+- No AQI ETL timer is required for correctness or backfill.
+- Retention only prunes raw `pi` tables; derived view sources are skipped by retention batch.

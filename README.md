@@ -120,12 +120,13 @@ This repo includes a modular edge-ML forecasting pipeline.
 * `run_data_retention.py`: thin CLI wrapper for retention
 * `run_online_training_batch.py`: batch retraining from `configs/model_specs.json`
 * `run_forecast_batch.py`: batch inference from `configs/model_specs.json`
-* `run_data_retention_batch.py`: batch retention by unique source table from specs
+* `run_data_retention_batch.py`: batch retention for raw source tables (`pi`) from specs; derived/view sources are skipped
 * `run_backfill_batch.py`: idempotent historical one-step backfill from model artifacts
 * `configs/model_specs.json`: declarative model list (both `bme` and `pms` targets)
 * `validate_model_specs.py`: CLI validator for spec integrity before deployment
 * `sql/forecast_schema.sql`: schema for `predictions` and `model_registry`
 * `sql/online_learning_schema.sql`: schema for online training state and holdout metrics
+* `sql/derived_schema_pms.sql`: derived AQI view from PMS raw PM2.5/PM10
 * `aqi-train-online.service` + `aqi-train-online.timer`: scheduled batch retraining across all configured models
 * `aqi-forecast.service` + `aqi-forecast.timer`: scheduled batch inference across all configured models
 * `aqi-retention.service` + `aqi-retention.timer`: scheduled data retention pruning
@@ -137,9 +138,30 @@ psql bme -f sql/raw_schema_bme.sql
 psql bme -f sql/forecast_schema.sql
 psql bme -f sql/online_learning_schema.sql
 psql pms -f sql/raw_schema_pms.sql
+psql pms -f sql/derived_schema_pms.sql
 psql pms -f sql/forecast_schema.sql
 psql pms -f sql/online_learning_schema.sql
 ```
+
+## Derived AQI (PM)
+AQPy computes a PM-based AQI from PMS raw data using U.S. EPA breakpoint interpolation:
+- Inputs: `pm25_st` and `pm10_st` from `pms.pi`
+- Truncation before interpolation:
+  - PM2.5 truncated to 0.1 `ug/m3`
+  - PM10 truncated to 1 `ug/m3`
+- AQI result is `max(subindex_pm25, subindex_pm10)` in range `[0, 500]`
+
+Implementation choice:
+- AQI is derived in SQL view `derived.pms_aqi` (and convenience view `pms_aqi`), not stored back into raw `pi`.
+- This is non-destructive and automatically backfills all historical rows.
+
+Tradeoff:
+- View-based derivation needs no ETL timer and is always up to date, but computes at query time.
+- ETL/materialized-table approach can be faster for heavy query loads, but adds operational complexity (refresh/backfill jobs, timer/cron, lag handling).
+
+Retention note:
+- `aqi_pm` models use source table `pms_aqi` (a view).
+- Retention job skips non-raw tables and only prunes raw `pi` tables.
 
 ## Train Model (offline or on Pi)
 Example for temperature forecast from the `bme.pi` table:

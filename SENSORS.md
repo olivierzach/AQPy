@@ -33,6 +33,20 @@ Digital laser particle sensor used for PM measurements over UART.
 - PMS5003 series manual (V2.3, mirrored by AQMD):
   - https://www.aqmd.gov/docs/default-source/aq-spec/resources-page/plantower-pms5003-manual_v2-3.pdf
 
+### AQPy Derived AQI (from PMS)
+AQPy derives a PM-based AQI metric using PMS standard channels:
+- Inputs: `pm25_st`, `pm10_st`
+- Method: EPA breakpoint linear interpolation per pollutant
+- Final index: `max(AQI_pm25, AQI_pm10)`
+
+Data path:
+- Raw PMS rows remain in `pms.pi`
+- Derived AQI is exposed via SQL view `derived.pms_aqi` and convenience view `pms_aqi`
+
+Operational implication:
+- Historical AQI is immediately available without backfill jobs
+- No ETL timer needed unless you later materialize AQI for performance reasons
+
 ## 2) BME280 (Bosch Sensortec)
 
 Combined environmental sensor for temperature, humidity, and pressure over I2C/SPI.
