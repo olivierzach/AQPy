@@ -139,6 +139,15 @@ done
 systemctl enable --now grafana-server
 systemctl restart grafana-server
 
+HOSTNAME_FQDN="$(hostname -f 2>/dev/null || hostname)"
+HOSTNAME_SHORT="$(hostname -s 2>/dev/null || hostname)"
+PRIMARY_IPV4="$(ip -o -4 addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n1)"
+
 echo "[grafana] Provisioned datasources and dashboards."
-echo "[grafana] Open overview: http://<pi-ip>:3000/d/aqpy-overview"
-echo "[grafana] Open raw sensors: http://<pi-ip>:3000/d/aqpy-raw"
+if [[ -n "${PRIMARY_IPV4}" ]]; then
+  echo "[grafana] Open overview: http://${PRIMARY_IPV4}:3000/d/aqpy-overview"
+  echo "[grafana] Open raw sensors: http://${PRIMARY_IPV4}:3000/d/aqpy-raw"
+fi
+echo "[grafana] Open overview (hostname): http://${HOSTNAME_SHORT}.local:3000/d/aqpy-overview"
+echo "[grafana] Open raw sensors (hostname): http://${HOSTNAME_SHORT}.local:3000/d/aqpy-raw"
+echo "[grafana] Hostname: ${HOSTNAME_FQDN}"

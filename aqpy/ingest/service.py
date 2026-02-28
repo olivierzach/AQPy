@@ -16,6 +16,18 @@ from aqpy.ingest.pms5003 import PMS5003
 logger = logging.getLogger(__name__)
 
 
+def _build_repository(db_name_pms, db_name_bme):
+    from aqpy.ingest.repository import PostgresIngestRepository
+
+    return PostgresIngestRepository(db_name_pms, db_name_bme)
+
+
+def _open_serial(port, baudrate, timeout):
+    import serial
+
+    return serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
+
+
 class BME280Sensor:
     def __init__(self, i2c_port, i2c_addr):
         import bme280
@@ -181,37 +193,72 @@ class LegacyAQIngestService:
 
 
 def build_default_service():
-    import serial
-    from aqpy.ingest.repository import PostgresIngestRepository
-
     config = load_config()
-    serial_conn = serial.Serial(
-        port=config.serial_port,
-        baudrate=config.serial_baud,
-        timeout=1,
-    )
-    pms = PMS5003(serial_conn, startup_delay=config.pms_startup_delay)
-    pms.sleep()
+    repository = None
+    tasks = []
+    try:
+        repository = _build_repository(config.db_name_pms, config.db_name_bme)
 
-    bme_sensor = BME280Sensor(config.bme_i2c_port, config.bme_i2c_addr)
-    repository = PostgresIngestRepository(config.db_name_pms, config.db_name_bme)
-    return AQIngestService(
-        tasks=[
-            PMSIngestTask(
-                name="pms",
-                particle_sensor=pms,
-                repository=repository,
-                pms_avg_time=config.pms_avg_time,
-            ),
-            BMEIngestTask(
-                name="bme",
-                climate_sensor=bme_sensor,
-                repository=repository,
-            ),
-        ],
-        repository=repository,
-        sleep_seconds=config.sleep_seconds,
-    )
+        serial_conn = None
+        pms = None
+        try:
+            serial_conn = _open_serial(
+                port=config.serial_port,
+                baudrate=config.serial_baud,
+                timeout=1,
+            )
+            pms = PMS5003(serial_conn, startup_delay=config.pms_startup_delay)
+            pms.sleep()
+        except Exception:
+            logger.exception("PMS5003 init failed; continuing with BME-only ingest")
+            if pms is not None:
+                try:
+                    pms.close()
+                except Exception:
+                    pass
+            elif serial_conn is not None:
+                try:
+                    serial_conn.close()
+                except Exception:
+                    pass
+        else:
+            tasks.append(
+                PMSIngestTask(
+                    name="pms",
+                    particle_sensor=pms,
+                    repository=repository,
+                    pms_avg_time=config.pms_avg_time,
+                )
+            )
+
+        try:
+            bme_sensor = BME280Sensor(config.bme_i2c_port, config.bme_i2c_addr)
+        except Exception:
+            logger.exception("BME280 init failed; continuing with PMS-only ingest")
+        else:
+            tasks.append(
+                BMEIngestTask(
+                    name="bme",
+                    climate_sensor=bme_sensor,
+                    repository=repository,
+                )
+            )
+
+        if not tasks:
+            raise RuntimeError("No sensors initialized; cannot start ingest service")
+
+        return AQIngestService(
+            tasks=tasks,
+            repository=repository,
+            sleep_seconds=config.sleep_seconds,
+        )
+    except Exception:
+        if repository is not None:
+            try:
+                repository.close()
+            except Exception:
+                pass
+        raise
 
 
 def run_ingest_loop():
