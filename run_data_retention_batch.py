@@ -27,6 +27,26 @@ def parse_args():
     return parser.parse_args()
 
 
+def collect_retention_sources(specs):
+    unique_sources = {}
+    skipped_sources = []
+    for spec in specs:
+        # Retention deletes rows; only run against base raw sensor tables.
+        if spec["table"] != "pi":
+            skipped_sources.append(
+                {
+                    "database": spec["database"],
+                    "table": spec["table"],
+                    "time_col": spec["time_col"],
+                    "reason": "non-raw source table; skipped retention",
+                }
+            )
+            continue
+        key = (spec["database"], spec["table"], spec["time_col"])
+        unique_sources[key] = True
+    return list(unique_sources.keys()), skipped_sources
+
+
 def main():
     args = parse_args()
     specs = load_model_specs(args.spec_file)
@@ -38,13 +58,11 @@ def main():
         families=[x.lower() for x in parse_csv(args.families)],
     )
 
-    unique_sources = {}
-    for spec in specs:
-        key = (spec["database"], spec["table"], spec["time_col"])
-        unique_sources[key] = True
+    unique_sources, skipped_sources = collect_retention_sources(specs)
 
     results = []
-    for database, table, time_col in unique_sources.keys():
+    results.extend(skipped_sources)
+    for database, table, time_col in unique_sources:
         try:
             res = run_retention(
                 database=database,
