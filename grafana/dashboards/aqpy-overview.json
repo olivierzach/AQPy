@@ -410,6 +410,834 @@
       ],
       "title": "Pressure Model MAE Over Time",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "ugm3",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 16
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", pm10_st AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS pm10_st: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "ugm3",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 16
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", pm25_st AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS pm25_st: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "ugm3",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 16
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", pm100_st AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS pm100_st: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "ugm3",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", pm10_en AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS pm10_en: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "ugm3",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", pm25_en AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS pm25_en: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "ugm3",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", pm100_en AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS pm100_en: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "none",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 32
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", p1 AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS p1: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "none",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 32
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", p2 AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS p2: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "none",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 32
+      },
+      "id": 15,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", p3 AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS p3: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "none",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 40
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", p4 AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS p4: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "none",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 40
+      },
+      "id": 17,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", p5 AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS p5: Actual vs All Models",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "unit": "none",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 40
+      },
+      "id": 18,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\", p6 AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "C"
+        },
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "refId": "D"
+        }
+      ],
+      "title": "PMS p6: Actual vs All Models",
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
@@ -431,6 +1259,6 @@
   "timezone": "",
   "title": "AQPy Edge Sensors + Forecasts",
   "uid": "aqpy-overview",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

@@ -182,7 +182,8 @@
             "pointSize": 2,
             "showPoints": "auto"
           },
-          "unit": "none"
+          "decimals": 0,
+          "unit": "ugm3"
         },
         "overrides": []
       },
@@ -204,11 +205,59 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT t AS \"time\", pm25_st AS \"pm25_st\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "rawSql": "SELECT t AS \"time\",\n       pm10_st AS \"pm10_st\",\n       pm25_st AS \"pm25_st\",\n       pm100_st AS \"pm100_st\",\n       pm10_en AS \"pm10_en\",\n       pm25_en AS \"pm25_en\",\n       pm100_en AS \"pm100_en\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
           "refId": "A"
         }
       ],
-      "title": "Raw PM2.5 (standard)",
+      "title": "Raw PM Mass (ug/m3)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 8,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "showPoints": "auto"
+          },
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT t AS \"time\",\n       p1 AS \"p1\",\n       p2 AS \"p2\",\n       p3 AS \"p3\",\n       p4 AS \"p4\",\n       p5 AS \"p5\",\n       p6 AS \"p6\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
+          "refId": "A"
+        }
+      ],
+      "title": "Raw Particle Counts (p1..p6)",
       "type": "timeseries"
     }
   ],
@@ -231,6 +280,6 @@
   "timezone": "",
   "title": "AQPy Raw Sensors",
   "uid": "aqpy-raw",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
