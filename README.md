@@ -76,6 +76,9 @@ The script reads configuration from environment variables (typically from `.env`
 * `AQPY_PMS_STARTUP_DELAY`, `AQPY_PMS_AVG_TIME`, `AQPY_SLEEP_SECONDS`
 * `AQPY_BME_I2C_PORT`, `AQPY_BME_I2C_ADDR`
 * `AQPY_LOG_LEVEL`
+* `AQPY_RETENTION_DAYS`, `AQPY_RETENTION_SAFETY_HOURS`
+* `AQPY_RETENTION_DAYS_RAW`, `AQPY_RETENTION_SAFETY_HOURS_RAW`
+* `AQPY_RETENTION_DAYS_PREDICTIONS`, `AQPY_RETENTION_SAFETY_HOURS_PREDICTIONS`
 
 # Ingestion Architecture
 Sensor ingestion is separated into its own package:
@@ -120,7 +123,7 @@ This repo includes a modular edge-ML forecasting pipeline.
 * `run_data_retention.py`: thin CLI wrapper for retention
 * `run_online_training_batch.py`: batch retraining from `configs/model_specs.json`
 * `run_forecast_batch.py`: batch inference from `configs/model_specs.json`
-* `run_data_retention_batch.py`: batch retention for raw source tables (`pi`) from specs; derived/view sources are skipped
+* `run_data_retention_batch.py`: modular retention for raw (`pi`) and `predictions` tables; derived/view sources are skipped
 * `run_backfill_batch.py`: idempotent historical one-step backfill from model artifacts
 * `configs/model_specs.json`: declarative model list (both `bme` and `pms` targets)
 * `validate_model_specs.py`: CLI validator for spec integrity before deployment
@@ -286,14 +289,33 @@ python3 run_data_retention.py \
   --database bme \
   --table pi \
   --time-col t \
-  --retention-days 14 \
-  --safety-hours 12
+  --retention-days 180 \
+  --safety-hours 24
 ```
 
 Retention cutoff is:
 * `min(now() - retention_days, min(last_seen_ts) - safety_hours)`
 
 This prevents deleting records that have not been incorporated into online training.
+
+## Modular Retention Defaults (Batch)
+`run_data_retention_batch.py` supports separate policies:
+- Raw tables (`pi`): training-watermark aware
+- Predictions table (`predictions`): time-window retention without training watermark
+
+Defaults are now:
+- raw retention: `180` days, `24` safety hours
+- predictions retention: `180` days, `0` safety hours
+
+Configure in `.env`:
+```dotenv
+AQPY_RETENTION_DAYS=180
+AQPY_RETENTION_SAFETY_HOURS=24
+AQPY_RETENTION_DAYS_RAW=180
+AQPY_RETENTION_SAFETY_HOURS_RAW=24
+AQPY_RETENTION_DAYS_PREDICTIONS=180
+AQPY_RETENTION_SAFETY_HOURS_PREDICTIONS=0
+```
 
 ## Run Timers On Pi
 ```bash

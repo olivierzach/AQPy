@@ -392,3 +392,25 @@ sudo ./scripts/provision_grafana.sh
 - AQI is derived by SQL view (`pms_aqi`), not written into raw `pms.pi`.
 - No AQI ETL timer is required for correctness or backfill.
 - Retention only prunes raw `pi` tables; derived view sources are skipped by retention batch.
+
+## 19) Tune Retention For Raw vs Predictions
+
+### Current Defaults
+- Raw `pi` tables: `180` days, `24` safety hours, training-watermark aware.
+- `predictions` tables: `180` days, `0` safety hours.
+
+### Configure Via `.env`
+```dotenv
+AQPY_RETENTION_DAYS=180
+AQPY_RETENTION_SAFETY_HOURS=24
+AQPY_RETENTION_DAYS_RAW=180
+AQPY_RETENTION_SAFETY_HOURS_RAW=24
+AQPY_RETENTION_DAYS_PREDICTIONS=180
+AQPY_RETENTION_SAFETY_HOURS_PREDICTIONS=0
+```
+
+### Run Immediately
+```bash
+cd ~/AQPy
+./scripts/run_edge_jobs_now.sh --retention-only
+```

@@ -23,6 +23,7 @@ def run_retention(
     model_name=None,
     retention_days=14,
     safety_hours=12,
+    use_training_watermark=True,
 ):
     from aqpy.common.db import connect_db
     from aqpy.forecast.online_repository import (
@@ -37,21 +38,24 @@ def run_retention(
     conn = connect_db(database)
     try:
         ensure_online_tables(conn)
-        min_last_seen_ts = get_min_last_seen_ts(conn, model_name=model_name)
-        if min_last_seen_ts is None:
-            return {
-                "status": "skipped",
-                "reason": "no training state found",
-                "rows_deleted": 0,
-            }
-
         now_utc = dt.datetime.now(dt.timezone.utc)
-        delete_cutoff = compute_delete_cutoff(
-            now_utc=now_utc,
-            min_last_seen_ts=min_last_seen_ts,
-            retention_days=retention_days,
-            safety_hours=safety_hours,
-        )
+        if use_training_watermark:
+            min_last_seen_ts = get_min_last_seen_ts(conn, model_name=model_name)
+            if min_last_seen_ts is None:
+                return {
+                    "status": "skipped",
+                    "reason": "no training state found",
+                    "rows_deleted": 0,
+                }
+
+            delete_cutoff = compute_delete_cutoff(
+                now_utc=now_utc,
+                min_last_seen_ts=min_last_seen_ts,
+                retention_days=retention_days,
+                safety_hours=safety_hours,
+            )
+        else:
+            delete_cutoff = now_utc - dt.timedelta(days=retention_days)
         rows_deleted = delete_older_than(conn, table, time_col, delete_cutoff)
         insert_retention_run(
             conn=conn,
