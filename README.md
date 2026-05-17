@@ -111,6 +111,8 @@ This repo includes a modular edge-ML forecasting pipeline.
 * `aqpy/forecast/nn_model.py`: small neural network model (MLP) for online updates
 * `aqpy/forecast/adaptive_ar.py`: adaptive autoregressive model (RLS with forgetting)
 * `aqpy/forecast/rnn_lite.py`: lightweight GRU-style latent model with trained linear head
+* `aqpy/forecast/garch_model.py`: lightweight GARCH(1,1) volatility model
+* `aqpy/forecast/anomaly_model.py`: anomaly scoring models (CUSUM, EWMA, BOCPD proxy)
 * `aqpy/forecast/repository.py`: SQL data access for forecast pipeline
 * `aqpy/forecast/training.py`: orchestration for training and artifact export
 * `aqpy/forecast/inference.py`: orchestration for forecast generation and inserts
@@ -124,16 +126,39 @@ This repo includes a modular edge-ML forecasting pipeline.
 * `run_data_retention.py`: thin CLI wrapper for retention
 * `run_online_training_batch.py`: batch retraining from `configs/model_specs.json`
 * `run_forecast_batch.py`: batch inference from `configs/model_specs.json`
-* `run_data_retention_batch.py`: modular retention for raw (`pi`) and `predictions` tables; derived/view sources are skipped
+* `run_data_retention_batch.py`: modular retention for raw (`pi`) and derived output tables (`predictions`, `garch_forecasts`, `anomaly_events`)
 * `run_backfill_batch.py`: idempotent historical one-step backfill from model artifacts
 * `configs/model_specs.json`: declarative model list (both `bme` and `pms` targets)
 * `validate_model_specs.py`: CLI validator for spec integrity before deployment
-* `sql/forecast_schema.sql`: schema for `predictions` and `model_registry`
+* `sql/forecast_schema.sql`: schema for `predictions`, `garch_forecasts`, `anomaly_events`, and `model_registry`
 * `sql/online_learning_schema.sql`: schema for online training state and holdout metrics
 * `sql/derived_schema_pms.sql`: derived AQI view from PMS raw PM2.5/PM10
 * `aqi-train-online.service` + `aqi-train-online.timer`: scheduled batch retraining across all configured models
 * `aqi-forecast.service` + `aqi-forecast.timer`: scheduled batch inference across all configured models
 * `aqi-retention.service` + `aqi-retention.timer`: scheduled data retention pruning
+
+## Additional Model Types
+New supported `model_type` values in `configs/model_specs.json`:
+- `garch_11`: writes volatility forecasts to `garch_forecasts`
+- `anomaly_cusum`: writes anomaly scores/events to `anomaly_events`
+- `anomaly_ewma`: writes anomaly scores/events to `anomaly_events`
+- `anomaly_bocpd`: writes anomaly scores/events to `anomaly_events`
+
+Output row details:
+- `predictions` (existing NN/AR/RNN): `predicted_for`, `horizon_step`, `yhat`
+- `garch_forecasts`: `forecast_for`, `horizon_step`, `yhat_mean`, `yhat_variance`, `yhat_volatility`
+- `anomaly_events`: `event_time`, `score`, `threshold`, `is_anomaly`, `method`, `metadata`
+
+All outputs also record source/model identity fields:
+- `source_database`, `source_table`, `target`, `model_name`, `model_version`
+
+Common optional spec fields:
+- `garch_alpha`, `garch_beta`
+- `anomaly_threshold`
+- `cusum_drift`
+- `ewma_alpha`
+- `bocpd_hazard`, `bocpd_window`
+- `score_window`
 
 ## Initialize Forecast Tables
 Run once per database used for forecasting:
@@ -302,7 +327,7 @@ This prevents deleting records that have not been incorporated into online train
 ## Modular Retention Defaults (Batch)
 `run_data_retention_batch.py` supports separate policies:
 - Raw tables (`pi`): training-watermark aware
-- Predictions table (`predictions`): time-window retention without training watermark
+- Derived output tables (`predictions`, `garch_forecasts`, `anomaly_events`): time-window retention without training watermark
 
 Defaults are now:
 - raw retention: `180` days, `24` safety hours

@@ -89,6 +89,8 @@ apply_db_permissions() {
 ALTER DATABASE ${database} OWNER TO ${app_user};
 ALTER TABLE IF EXISTS pi OWNER TO ${app_user};
 ALTER TABLE IF EXISTS predictions OWNER TO ${app_user};
+ALTER TABLE IF EXISTS garch_forecasts OWNER TO ${app_user};
+ALTER TABLE IF EXISTS anomaly_events OWNER TO ${app_user};
 ALTER TABLE IF EXISTS model_registry OWNER TO ${app_user};
 ALTER TABLE IF EXISTS online_training_state OWNER TO ${app_user};
 ALTER TABLE IF EXISTS online_training_metrics OWNER TO ${app_user};

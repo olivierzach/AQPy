@@ -13,16 +13,30 @@ REQUIRED_KEYS = {
     "model_path",
 }
 
-ALLOWED_MODEL_TYPES = {"nn_mlp", "adaptive_ar", "rnn_lite_gru"}
+ALLOWED_MODEL_TYPES = {
+    "nn_mlp",
+    "adaptive_ar",
+    "rnn_lite_gru",
+    "garch_11",
+    "anomaly_cusum",
+    "anomaly_ewma",
+    "anomaly_bocpd",
+}
 IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 FAMILY_TO_MODEL_TYPES = {
     "nn": {"nn_mlp"},
     "ar": {"adaptive_ar"},
     "rnn": {"rnn_lite_gru"},
+    "garch": {"garch_11"},
+    "anomaly": {"anomaly_cusum", "anomaly_ewma", "anomaly_bocpd"},
     # Also allow explicit model_type values as family filters.
     "nn_mlp": {"nn_mlp"},
     "adaptive_ar": {"adaptive_ar"},
     "rnn_lite_gru": {"rnn_lite_gru"},
+    "garch_11": {"garch_11"},
+    "anomaly_cusum": {"anomaly_cusum"},
+    "anomaly_ewma": {"anomaly_ewma"},
+    "anomaly_bocpd": {"anomaly_bocpd"},
 }
 
 
@@ -129,12 +143,35 @@ def validate_model_specs(specs):
         _expect_positive_number(spec, "forgetting_factor")
         _expect_positive_number(spec, "ar_delta")
         _expect_positive_number(spec, "rnn_ridge")
+        _expect_positive_number(spec, "garch_alpha")
+        _expect_positive_number(spec, "garch_beta")
+        _expect_positive_number(spec, "anomaly_threshold")
+        _expect_positive_number(spec, "cusum_drift")
+        _expect_positive_number(spec, "ewma_alpha")
+        _expect_positive_number(spec, "bocpd_hazard")
+        _expect_positive_int(spec, "bocpd_window")
+        _expect_positive_int(spec, "score_window")
 
         if model_type in {"nn_mlp", "adaptive_ar"}:
             _validate_lags(spec)
         if model_type == "rnn_lite_gru":
             if "seq_len" not in spec:
                 raise ValueError(f"Spec '{model_name}' with rnn_lite_gru must provide 'seq_len'.")
+        if model_type == "garch_11":
+            alpha = float(spec.get("garch_alpha", 0.1))
+            beta = float(spec.get("garch_beta", 0.85))
+            if alpha + beta >= 1:
+                raise ValueError(
+                    f"Spec '{model_name}' has invalid garch params: garch_alpha + garch_beta must be < 1."
+                )
+        if model_type == "anomaly_ewma":
+            alpha = float(spec.get("ewma_alpha", 0.2))
+            if alpha >= 1:
+                raise ValueError(f"Spec '{model_name}' ewma_alpha must be < 1.")
+        if model_type == "anomaly_bocpd":
+            hazard = float(spec.get("bocpd_hazard", 0.05))
+            if hazard >= 1:
+                raise ValueError(f"Spec '{model_name}' bocpd_hazard must be < 1.")
 
         if "max_train_rows" in spec and "burn_in_rows" in spec:
             if spec["max_train_rows"] < spec["burn_in_rows"]:

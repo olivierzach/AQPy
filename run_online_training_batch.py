@@ -61,6 +61,14 @@ def main():
                 max_train_rows=spec.get("max_train_rows"),
                 rnn_ridge=spec.get("rnn_ridge", 1e-3),
                 random_seed=spec.get("random_seed", 42),
+                garch_alpha=spec.get("garch_alpha", 0.1),
+                garch_beta=spec.get("garch_beta", 0.85),
+                anomaly_threshold=spec.get("anomaly_threshold", 3.0),
+                cusum_drift=spec.get("cusum_drift", 0.25),
+                ewma_alpha=spec.get("ewma_alpha", 0.2),
+                bocpd_hazard=spec.get("bocpd_hazard", 0.05),
+                bocpd_window=spec.get("bocpd_window", 30),
+                score_window=spec.get("score_window", 120),
             )
             results.append({"model_name": spec["model_name"], "result": res})
         except Exception as exc:

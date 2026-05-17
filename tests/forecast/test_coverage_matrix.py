@@ -4,16 +4,32 @@ from collections import defaultdict
 from pathlib import Path
 
 
-MODEL_TYPES = {"nn_mlp", "adaptive_ar", "rnn_lite_gru"}
+MODEL_TYPES = {
+    "nn_mlp",
+    "adaptive_ar",
+    "rnn_lite_gru",
+    "garch_11",
+    "anomaly_cusum",
+    "anomaly_ewma",
+    "anomaly_bocpd",
+}
 MODEL_PREFIX = {
     "nn_mlp": "aqpy_nn_",
     "adaptive_ar": "aqpy_ar_",
     "rnn_lite_gru": "aqpy_rnn_",
+    "garch_11": "aqpy_garch_",
+    "anomaly_cusum": "aqpy_anom_cusum_",
+    "anomaly_ewma": "aqpy_anom_ewma_",
+    "anomaly_bocpd": "aqpy_anom_bocpd_",
 }
 MODEL_PATH_SUFFIX = {
     "nn_mlp": "_nn.json",
     "adaptive_ar": "_ar.json",
     "rnn_lite_gru": "_rnn.json",
+    "garch_11": "_garch.json",
+    "anomaly_cusum": "_anom_cusum.json",
+    "anomaly_ewma": "_anom_ewma.json",
+    "anomaly_bocpd": "_anom_bocpd.json",
 }
 
 

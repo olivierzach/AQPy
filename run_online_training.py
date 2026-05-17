@@ -19,7 +19,15 @@ def parse_args():
     parser.add_argument("--model-path", default="models/bme_temperature_nn.json")
     parser.add_argument(
         "--model-type",
-        choices=["nn_mlp", "adaptive_ar", "rnn_lite_gru"],
+        choices=[
+            "nn_mlp",
+            "adaptive_ar",
+            "rnn_lite_gru",
+            "garch_11",
+            "anomaly_cusum",
+            "anomaly_ewma",
+            "anomaly_bocpd",
+        ],
         default="nn_mlp",
     )
     parser.add_argument("--history-hours", type=int, default=24 * 14)
@@ -37,6 +45,14 @@ def parse_args():
     parser.add_argument("--ar-delta", type=float, default=100.0)
     parser.add_argument("--rnn-ridge", type=float, default=1e-3)
     parser.add_argument("--random-seed", type=int, default=42)
+    parser.add_argument("--garch-alpha", type=float, default=0.1)
+    parser.add_argument("--garch-beta", type=float, default=0.85)
+    parser.add_argument("--anomaly-threshold", type=float, default=3.0)
+    parser.add_argument("--cusum-drift", type=float, default=0.25)
+    parser.add_argument("--ewma-alpha", type=float, default=0.2)
+    parser.add_argument("--bocpd-hazard", type=float, default=0.05)
+    parser.add_argument("--bocpd-window", type=int, default=30)
+    parser.add_argument("--score-window", type=int, default=120)
     return parser.parse_args()
 
 
@@ -66,6 +82,14 @@ def main():
         ar_delta=args.ar_delta,
         rnn_ridge=args.rnn_ridge,
         random_seed=args.random_seed,
+        garch_alpha=args.garch_alpha,
+        garch_beta=args.garch_beta,
+        anomaly_threshold=args.anomaly_threshold,
+        cusum_drift=args.cusum_drift,
+        ewma_alpha=args.ewma_alpha,
+        bocpd_hazard=args.bocpd_hazard,
+        bocpd_window=args.bocpd_window,
+        score_window=args.score_window,
     )
     print(json.dumps(result, indent=2, default=str))
 

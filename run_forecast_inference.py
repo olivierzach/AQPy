@@ -23,8 +23,9 @@ def main():
         horizon_steps=args.horizon_steps,
         database_override=args.database,
     )
+    output_table = result.get("output_table", "predictions")
     print(
-        f"Inserted {result['inserted']} predictions for {result['target']} "
+        f"Inserted {result['inserted']} rows into {output_table} for {result['target']} "
         f"using {result['model_name']}:{result['model_version']}"
     )
 

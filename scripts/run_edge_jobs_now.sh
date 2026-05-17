@@ -18,7 +18,7 @@ BACKFILL_HOURS="${AQPY_BACKFILL_HOURS:-48}"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--train-only|--forecast-only|--retention-only|--with-retention|--with-backfill] [--databases bme,pms] [--models m1,m2] [--targets t1,t2] [--families nn,ar,rnn]
+Usage: $(basename "$0") [--train-only|--forecast-only|--retention-only|--with-retention|--with-backfill] [--databases bme,pms] [--models m1,m2] [--targets t1,t2] [--families nn,ar,rnn,garch,anomaly]
 
 Runs AQPy batch jobs immediately without requiring:
   - manual venv activation

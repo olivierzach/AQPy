@@ -161,6 +161,33 @@ class TestModelSpecsValidation(unittest.TestCase):
         )
         self.assertEqual({s["model_name"] for s in filtered}, {"aqpy_nn_temperature", "aqpy_rnn_pressure"})
 
+    def test_filter_specs_includes_new_garch_and_anomaly_families(self):
+        specs = [
+            {
+                "model_name": "aqpy_garch_temperature",
+                "model_type": "garch_11",
+                "database": "bme",
+                "table": "pi",
+                "time_col": "t",
+                "target": "temperature",
+                "model_path": "models/bme_temperature_garch.json",
+            },
+            {
+                "model_name": "aqpy_anom_temperature",
+                "model_type": "anomaly_cusum",
+                "database": "bme",
+                "table": "pi",
+                "time_col": "t",
+                "target": "temperature",
+                "model_path": "models/bme_temperature_anom.json",
+            },
+        ]
+        garch_only = filter_specs(specs, families=["garch"])
+        self.assertEqual([s["model_name"] for s in garch_only], ["aqpy_garch_temperature"])
+
+        anomaly_only = filter_specs(specs, families=["anomaly"])
+        self.assertEqual([s["model_name"] for s in anomaly_only], ["aqpy_anom_temperature"])
+
     def test_repo_specs_cover_all_pms_targets_for_all_families(self):
         repo_root = Path(__file__).resolve().parents[2]
         specs = load_model_specs(repo_root / "configs" / "model_specs.json")
@@ -180,7 +207,15 @@ class TestModelSpecsValidation(unittest.TestCase):
             "p5",
             "p6",
         }
-        expected_model_types = {"nn_mlp", "adaptive_ar", "rnn_lite_gru"}
+        expected_model_types = {
+            "nn_mlp",
+            "adaptive_ar",
+            "rnn_lite_gru",
+            "garch_11",
+            "anomaly_cusum",
+            "anomaly_ewma",
+            "anomaly_bocpd",
+        }
 
         coverage = defaultdict(set)
         for spec in specs:

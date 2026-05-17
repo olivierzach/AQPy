@@ -98,16 +98,22 @@ def collect_retention_sources(
             "use_training_watermark": True,
         }
 
+    derived_outputs = (
+        ("predictions", "predicted_for"),
+        ("garch_forecasts", "forecast_for"),
+        ("anomaly_events", "event_time"),
+    )
     for db in sorted(databases):
-        key = (db, "predictions", "predicted_for", "predictions")
-        unique_sources[key] = {
-            "database": db,
-            "table": "predictions",
-            "time_col": "predicted_for",
-            "retention_days": pred_retention_days,
-            "safety_hours": pred_safety_hours,
-            "use_training_watermark": False,
-        }
+        for table, time_col in derived_outputs:
+            key = (db, table, time_col, "derived")
+            unique_sources[key] = {
+                "database": db,
+                "table": table,
+                "time_col": time_col,
+                "retention_days": pred_retention_days,
+                "safety_hours": pred_safety_hours,
+                "use_training_watermark": False,
+            }
 
     return list(unique_sources.values()), skipped_sources
 

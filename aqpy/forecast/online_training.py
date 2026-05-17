@@ -9,13 +9,20 @@ from aqpy.forecast.adaptive_ar import (
     fit_recursive_least_squares,
     predict_batch as ar_predict_batch,
 )
+from aqpy.forecast.anomaly_model import (
+    fit_bocpd_proxy,
+    fit_cusum,
+    fit_ewma,
+    score_bocpd_proxy,
+    score_cusum,
+    score_ewma,
+)
 from aqpy.forecast.features import (
-    build_ar_single_feature,
     build_ar_feature_matrix,
-    build_single_feature,
     build_feature_matrix,
     estimate_cadence_seconds,
 )
+from aqpy.forecast.garch_model import fit_garch_11
 from aqpy.forecast.model import mae, rmse, split_train_val
 from aqpy.forecast.nn_model import predict_batch, train_mlp_regressor
 from aqpy.forecast.rnn_lite import (
@@ -85,6 +92,14 @@ def run_online_training_step(
     max_train_rows=None,
     rnn_ridge=1e-3,
     random_seed=42,
+    garch_alpha=0.1,
+    garch_beta=0.85,
+    anomaly_threshold=3.0,
+    cusum_drift=0.25,
+    ewma_alpha=0.2,
+    bocpd_hazard=0.05,
+    bocpd_window=30,
+    score_window=120,
 ):
     table = validate_identifier(table)
     time_col = validate_identifier(time_col)
@@ -119,7 +134,13 @@ def run_online_training_step(
                 "new_rows": new_rows,
             }
 
-        if len(values) <= max(lags) + 5:
+        if model_type in {"nn_mlp", "adaptive_ar"} and len(values) <= max(lags) + 5:
+            return {
+                "status": "skipped",
+                "reason": f"not enough rows ({len(values)})",
+                "new_rows": new_rows,
+            }
+        if model_type == "rnn_lite_gru" and len(values) <= seq_len:
             return {
                 "status": "skipped",
                 "reason": f"not enough rows ({len(values)})",
@@ -130,6 +151,26 @@ def run_online_training_step(
             X, y = build_ar_feature_matrix(values, lags)
         elif model_type == "rnn_lite_gru":
             X_seq, y = build_sequence_dataset(np.array(values, dtype=float), seq_len=seq_len)
+        elif model_type in {"garch_11", "anomaly_cusum", "anomaly_ewma", "anomaly_bocpd"}:
+            split_idx = max(1, int(len(values) * (1.0 - holdout_ratio)))
+            if split_idx >= len(values):
+                split_idx = len(values) - 1
+            train_values = np.array(values[:split_idx], dtype=float)
+            holdout_values = np.array(values[split_idx:], dtype=float)
+            if len(holdout_values) < 5:
+                return {
+                    "status": "skipped",
+                    "reason": "holdout set too small",
+                    "new_rows": new_rows,
+                }
+            if model_type == "garch_11" and len(train_values) < 10:
+                return {
+                    "status": "skipped",
+                    "reason": f"not enough training rows for garch_11 ({len(train_values)})",
+                    "new_rows": new_rows,
+                }
+            train_rows = len(train_values)
+            holdout_rows = len(holdout_values)
         else:
             X, y = build_feature_matrix(values, lags)
         if model_type == "rnn_lite_gru":
@@ -148,7 +189,7 @@ def run_online_training_step(
                 }
             train_rows = len(X_train_seq)
             holdout_rows = len(X_holdout_seq)
-        else:
+        elif model_type not in {"garch_11", "anomaly_cusum", "anomaly_ewma", "anomaly_bocpd"}:
             X_train, X_holdout, y_train, y_holdout = split_train_val(X, y, train_ratio=1.0 - holdout_ratio)
             if len(X_holdout) < 5:
                 return {
@@ -227,7 +268,7 @@ def run_online_training_step(
             train_loss = float(rnn_model.get("train_loss"))
             baseline_pred = _baseline_from_sequences(X_holdout_seq)
             model_payload = rnn_model
-        else:
+        elif model_type == "nn_mlp":
             nn_model = train_mlp_regressor(
                 X_train=X_train,
                 y_train=y_train,
@@ -241,6 +282,66 @@ def run_online_training_step(
             train_loss = nn_model.get("train_loss")
             baseline_pred = _baseline_from_features(X_holdout, lags)
             model_payload = nn_model
+        elif model_type == "garch_11":
+            garch_model = fit_garch_11(train_values, alpha=garch_alpha, beta=garch_beta)
+            mean_return = float(garch_model["mean_return"])
+            cursor = float(train_values[-1])
+            preds = []
+            for _ in range(len(holdout_values)):
+                cursor += mean_return
+                preds.append(cursor)
+            holdout_pred = np.array(preds, dtype=float)
+            y_holdout = np.array(holdout_values, dtype=float)
+            baseline_pred = np.array(
+                [float(train_values[-1])] + [float(v) for v in holdout_values[:-1]],
+                dtype=float,
+            )
+            train_loss = float(np.var(np.diff(train_values)))
+            model_payload = {
+                **garch_model,
+                "score_window": int(score_window),
+            }
+        elif model_type in {"anomaly_cusum", "anomaly_ewma", "anomaly_bocpd"}:
+            train_mean = float(np.mean(train_values))
+            train_std = max(float(np.std(train_values)), 1e-9)
+            if model_type == "anomaly_cusum":
+                anomaly_model = fit_cusum(
+                    train_values,
+                    drift=cusum_drift,
+                    threshold=anomaly_threshold,
+                )
+                scored = score_cusum(holdout_values, anomaly_model)
+            elif model_type == "anomaly_ewma":
+                anomaly_model = fit_ewma(
+                    train_values,
+                    alpha=ewma_alpha,
+                    threshold=anomaly_threshold,
+                )
+                scored = score_ewma(holdout_values, anomaly_model)
+            else:
+                anomaly_model = fit_bocpd_proxy(
+                    train_values,
+                    hazard=bocpd_hazard,
+                    window=bocpd_window,
+                    threshold=anomaly_threshold,
+                )
+                scored = score_bocpd_proxy(holdout_values, anomaly_model)
+
+            y_holdout = np.array(
+                [1.0 if abs(float(v) - train_mean) > (anomaly_threshold * train_std) else 0.0 for v in holdout_values],
+                dtype=float,
+            )
+            holdout_pred = np.array([1.0 if row["is_anomaly"] else 0.0 for row in scored], dtype=float)
+            baseline_pred = np.zeros_like(holdout_pred)
+            train_loss = float(np.mean(np.abs(holdout_pred - y_holdout)))
+            model_payload = {
+                **anomaly_model,
+                "score_window": int(score_window),
+                "train_mean": train_mean,
+                "train_std": train_std,
+            }
+        else:
+            raise ValueError(f"Unsupported model_type: {model_type}")
 
         holdout_mae = mae(y_holdout, holdout_pred)
         holdout_rmse = rmse(y_holdout, holdout_pred)
@@ -286,6 +387,14 @@ def run_online_training_step(
                 "random_seed": random_seed,
                 "min_new_rows": min_new_rows,
                 "history_hours": history_hours,
+                "garch_alpha": garch_alpha,
+                "garch_beta": garch_beta,
+                "anomaly_threshold": anomaly_threshold,
+                "cusum_drift": cusum_drift,
+                "ewma_alpha": ewma_alpha,
+                "bocpd_hazard": bocpd_hazard,
+                "bocpd_window": bocpd_window,
+                "score_window": score_window,
             },
             **model_payload,
         }

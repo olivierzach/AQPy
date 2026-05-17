@@ -117,6 +117,8 @@ Reassign ownership and privileges:
 sudo -u postgres psql -d bme <<'SQL'
 ALTER DATABASE bme OWNER TO pi;
 ALTER TABLE IF EXISTS predictions OWNER TO pi;
+ALTER TABLE IF EXISTS garch_forecasts OWNER TO pi;
+ALTER TABLE IF EXISTS anomaly_events OWNER TO pi;
 ALTER TABLE IF EXISTS model_registry OWNER TO pi;
 ALTER TABLE IF EXISTS online_training_state OWNER TO pi;
 ALTER TABLE IF EXISTS online_training_metrics OWNER TO pi;
@@ -129,6 +131,8 @@ SQL
 sudo -u postgres psql -d pms <<'SQL'
 ALTER DATABASE pms OWNER TO pi;
 ALTER TABLE IF EXISTS predictions OWNER TO pi;
+ALTER TABLE IF EXISTS garch_forecasts OWNER TO pi;
+ALTER TABLE IF EXISTS anomaly_events OWNER TO pi;
 ALTER TABLE IF EXISTS model_registry OWNER TO pi;
 ALTER TABLE IF EXISTS online_training_state OWNER TO pi;
 ALTER TABLE IF EXISTS online_training_metrics OWNER TO pi;
@@ -391,13 +395,15 @@ sudo ./scripts/provision_grafana.sh
 ### Notes
 - AQI is derived by SQL view (`pms_aqi`), not written into raw `pms.pi`.
 - No AQI ETL timer is required for correctness or backfill.
-- Retention only prunes raw `pi` tables; derived view sources are skipped by retention batch.
+- Raw retention prunes `pi` with training-watermark safety.
+- Derived/view source inputs (for example `pms_aqi`) are skipped for raw pruning.
+- Derived output tables (`predictions`, `garch_forecasts`, `anomaly_events`) are pruned by time window.
 
-## 19) Tune Retention For Raw vs Predictions
+## 19) Tune Retention For Raw vs Forecast/Anomaly Outputs
 
 ### Current Defaults
 - Raw `pi` tables: `180` days, `24` safety hours, training-watermark aware.
-- `predictions` tables: `180` days, `0` safety hours.
+- Derived output tables (`predictions`, `garch_forecasts`, `anomaly_events`): `180` days, `0` safety hours.
 
 ### Configure Via `.env`
 ```dotenv
@@ -414,3 +420,28 @@ AQPY_RETENTION_SAFETY_HOURS_PREDICTIONS=0
 cd ~/AQPy
 ./scripts/run_edge_jobs_now.sh --retention-only
 ```
+
+## 20) New Models Trained But No Rows In `garch_forecasts` / `anomaly_events`
+
+### Symptom
+- `model_registry` and artifacts exist for anomaly/GARCH models.
+- `predictions` may have rows, but `garch_forecasts` or `anomaly_events` stay empty.
+
+### Checks
+```bash
+cd ~/AQPy
+python3 validate_model_specs.py --spec-file configs/model_specs.json
+PGPASSWORD='raspberry' psql -h localhost -U pi -d bme -c "select model_name, model_version, last_seen_ts from online_training_state order by last_seen_ts desc limit 20;"
+PGPASSWORD='raspberry' psql -h localhost -U pi -d bme -c "select model_name, count(*) from garch_forecasts group by 1 order by 2 desc;"
+PGPASSWORD='raspberry' psql -h localhost -U pi -d bme -c "select model_name, count(*) from anomaly_events group by 1 order by 2 desc;"
+```
+
+### Force one pass
+```bash
+./scripts/run_edge_jobs_now.sh --train-only --families garch,anomaly
+./scripts/run_edge_jobs_now.sh --forecast-only --families garch,anomaly
+```
+
+### Notes
+- Anomaly models write numeric `score` and `threshold` plus boolean `is_anomaly`; not just yes/no text.
+- GARCH models write `yhat_mean`, `yhat_variance`, and `yhat_volatility`.

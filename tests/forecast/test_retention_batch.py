@@ -4,7 +4,7 @@ from run_data_retention_batch import collect_retention_sources
 
 
 class TestRetentionBatchSourceSelection(unittest.TestCase):
-    def test_collect_retention_sources_includes_raw_and_predictions(self):
+    def test_collect_retention_sources_includes_raw_and_all_derived_outputs(self):
         specs = [
             {"database": "bme", "table": "pi", "time_col": "t"},
             {"database": "pms", "table": "pi", "time_col": "t"},
@@ -26,7 +26,11 @@ class TestRetentionBatchSourceSelection(unittest.TestCase):
                 ("bme", "pi", "t"),
                 ("pms", "pi", "t"),
                 ("bme", "predictions", "predicted_for"),
+                ("bme", "garch_forecasts", "forecast_for"),
+                ("bme", "anomaly_events", "event_time"),
                 ("pms", "predictions", "predicted_for"),
+                ("pms", "garch_forecasts", "forecast_for"),
+                ("pms", "anomaly_events", "event_time"),
             },
         )
         for source in sources:
@@ -34,7 +38,7 @@ class TestRetentionBatchSourceSelection(unittest.TestCase):
                 self.assertTrue(source["use_training_watermark"])
                 self.assertEqual(source["retention_days"], 180)
                 self.assertEqual(source["safety_hours"], 24)
-            if source["table"] == "predictions":
+            if source["table"] in {"predictions", "garch_forecasts", "anomaly_events"}:
                 self.assertFalse(source["use_training_watermark"])
                 self.assertEqual(source["retention_days"], 180)
                 self.assertEqual(source["safety_hours"], 0)

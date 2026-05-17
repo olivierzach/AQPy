@@ -88,6 +88,57 @@ def ensure_predictions_table(conn):
     conn.commit()
 
 
+def ensure_garch_forecasts_table(conn):
+    ddl = """
+    CREATE TABLE IF NOT EXISTS garch_forecasts (
+        id BIGSERIAL PRIMARY KEY,
+        generated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        forecast_for TIMESTAMPTZ NOT NULL,
+        source_database TEXT NOT NULL,
+        source_table TEXT NOT NULL,
+        target TEXT NOT NULL,
+        model_name TEXT NOT NULL,
+        model_version TEXT NOT NULL,
+        horizon_step INTEGER NOT NULL CHECK (horizon_step > 0),
+        yhat_mean DOUBLE PRECISION NOT NULL,
+        yhat_variance DOUBLE PRECISION NOT NULL CHECK (yhat_variance >= 0),
+        yhat_volatility DOUBLE PRECISION NOT NULL CHECK (yhat_volatility >= 0)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_garch_forecasts_lookup
+        ON garch_forecasts (target, model_name, forecast_for DESC);
+    """
+    with conn.cursor() as cur:
+        cur.execute(ddl)
+    conn.commit()
+
+
+def ensure_anomaly_events_table(conn):
+    ddl = """
+    CREATE TABLE IF NOT EXISTS anomaly_events (
+        id BIGSERIAL PRIMARY KEY,
+        detected_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        event_time TIMESTAMPTZ NOT NULL,
+        source_database TEXT NOT NULL,
+        source_table TEXT NOT NULL,
+        target TEXT NOT NULL,
+        model_name TEXT NOT NULL,
+        model_version TEXT NOT NULL,
+        score DOUBLE PRECISION NOT NULL,
+        threshold DOUBLE PRECISION NOT NULL,
+        is_anomaly BOOLEAN NOT NULL,
+        method TEXT NOT NULL,
+        metadata JSONB NOT NULL DEFAULT '{}'::jsonb
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_anomaly_events_lookup
+        ON anomaly_events (target, model_name, event_time DESC);
+    """
+    with conn.cursor() as cur:
+        cur.execute(ddl)
+    conn.commit()
+
+
 def register_model(conn, payload):
     query = """
     INSERT INTO model_registry (
@@ -141,6 +192,65 @@ def insert_predictions(conn, payload_rows):
     conn.commit()
 
 
+def insert_garch_forecasts(conn, payload_rows):
+    query = """
+    INSERT INTO garch_forecasts (
+        generated_at,
+        forecast_for,
+        source_database,
+        source_table,
+        target,
+        model_name,
+        model_version,
+        horizon_step,
+        yhat_mean,
+        yhat_variance,
+        yhat_volatility
+    ) VALUES (now(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    with conn.cursor() as cur:
+        cur.executemany(query, payload_rows)
+    conn.commit()
+
+
+def insert_anomaly_events(conn, payload_rows):
+    query = """
+    INSERT INTO anomaly_events (
+        detected_at,
+        event_time,
+        source_database,
+        source_table,
+        target,
+        model_name,
+        model_version,
+        score,
+        threshold,
+        is_anomaly,
+        method,
+        metadata
+    ) VALUES (now(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    rows = [
+        (
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+            row[6],
+            row[7],
+            row[8],
+            row[9],
+            Json(row[10]),
+        )
+        for row in payload_rows
+    ]
+    with conn.cursor() as cur:
+        cur.executemany(query, rows)
+    conn.commit()
+
+
 def delete_predictions_window(
     conn,
     model_name,
@@ -173,6 +283,85 @@ def delete_predictions_window(
                 source_table,
                 target,
                 int(horizon_step),
+                start_ts,
+                end_ts,
+            ),
+        )
+        deleted = cur.rowcount
+    conn.commit()
+    return int(deleted)
+
+
+def delete_garch_window(
+    conn,
+    model_name,
+    model_version,
+    source_database,
+    source_table,
+    target,
+    start_ts,
+    end_ts,
+    horizon_step=1,
+):
+    query = """
+    DELETE FROM garch_forecasts
+    WHERE model_name = %s
+      AND model_version = %s
+      AND source_database = %s
+      AND source_table = %s
+      AND target = %s
+      AND horizon_step = %s
+      AND forecast_for >= %s
+      AND forecast_for <= %s
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            query,
+            (
+                model_name,
+                model_version,
+                source_database,
+                source_table,
+                target,
+                int(horizon_step),
+                start_ts,
+                end_ts,
+            ),
+        )
+        deleted = cur.rowcount
+    conn.commit()
+    return int(deleted)
+
+
+def delete_anomaly_window(
+    conn,
+    model_name,
+    model_version,
+    source_database,
+    source_table,
+    target,
+    start_ts,
+    end_ts,
+):
+    query = """
+    DELETE FROM anomaly_events
+    WHERE model_name = %s
+      AND model_version = %s
+      AND source_database = %s
+      AND source_table = %s
+      AND target = %s
+      AND event_time >= %s
+      AND event_time <= %s
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            query,
+            (
+                model_name,
+                model_version,
+                source_database,
+                source_table,
+                target,
                 start_ts,
                 end_ts,
             ),
