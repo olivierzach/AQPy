@@ -6,6 +6,7 @@ Repository for scripts and files to read the PMS5003 air quality index sensor an
 * `TROUBLESHOOTING.md`: end-to-end troubleshooting (SSH, DB auth/ownership, schema, sensor serial, Grafana)
 * `REFLASH_AND_LOGIN.md`: reflash + first SSH login checklist
 * `grafana.md`: Grafana background notes
+* `CO2_USB_PLAN.md`: USB CO2 sensor hardware recommendation + staged implementation plan
 
 # Hardware 
 ## PMS5003 
