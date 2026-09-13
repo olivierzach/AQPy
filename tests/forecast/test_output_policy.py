@@ -4,6 +4,13 @@ from aqpy.forecast.output_policy import correct_output,in_domain
 
 
 class OutputPolicyTests(unittest.TestCase):
+    def test_stability_guard_rejects_explosive_rollout_using_only_past(self):
+        history=[0.,1.,2.,3.,1.]*10
+        self.assertEqual(correct_output('pm25_st',20000,1,history),(1.,'causal_stability_persistence_v1'))
+        self.assertEqual(correct_output('pm25_st',5,1,history),(5.,'unchanged'))
+        self.assertEqual(correct_output('p1',100,100,[100.]*50),(100.,'unchanged'))
+        self.assertEqual(correct_output('pm10_st',2,0,[0.]*50),(2.,'unchanged'))
+
     def test_watchdog_rejects_latest_physical_violation(self):
         import datetime as dt
         from aqpy.forecast.health import check_recent_predictions

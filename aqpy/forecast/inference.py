@@ -76,7 +76,7 @@ def run_inference(model_path, horizon_steps=12, database_override=None):
         cadence_seconds = int(model.get("cadence_seconds", 60))
         rows = []
         for step, pred in enumerate(preds, start=1):
-            served, reason = correct_output(target, pred, values[-1])
+            served, reason = correct_output(target, pred, values[-1],values)
             pred_for = last_ts + dt.timedelta(seconds=cadence_seconds * step)
             rows.append(
                 (

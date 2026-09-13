@@ -2,7 +2,7 @@
 import math
 
 NONNEGATIVE = {f'pm{size}_{kind}' for size in ('10','25','100') for kind in ('st','en')} | {f'p{i}' for i in range(1,7)}
-POLICY_VERSION = 'physical_output_v1'
+POLICY_VERSION = 'physical_output_v2'
 
 
 def bounds(target):
@@ -19,7 +19,7 @@ def in_domain(target,value):
     return (low is None or value>=low) and (high is None or value<=high)
 
 
-def correct_output(target,raw,baseline):
+def correct_output(target,raw,baseline,history=None):
     """Return served forecast and its reason; never feed future actuals into policy.
 
     Negative particle outputs project to zero, the nearest physical value. Other
@@ -30,6 +30,15 @@ def correct_output(target,raw,baseline):
     raw=float(raw);baseline=float(baseline)
     if not math.isfinite(raw):raise ValueError('Nonfinite raw model forecast')
     if not in_domain(target,baseline):raise ValueError('Invalid policy baseline')
-    if in_domain(target,raw):return raw,'unchanged'
-    if target in NONNEGATIVE and raw<0:return 0.,'nonnegative_projection_v1'
-    return baseline,'physical_persistence_v1'
+    if not in_domain(target,raw):
+        if target in NONNEGATIVE and raw<0:return 0.,'nonnegative_projection_v1'
+        return baseline,'physical_persistence_v1'
+    if history is not None and len(history)>=20:
+        recent=[float(v) for v in history[-50:]]
+        if any(not math.isfinite(v) for v in recent):raise ValueError('Invalid stability history')
+        low,high=min(recent),max(recent)
+        resolution=.1 if target in {'temperature','humidity','pressure'} else 1.
+        span=max(high-low,resolution)
+        if raw<low-10*span or raw>high+10*span:
+            return baseline,'causal_stability_persistence_v1'
+    return raw,'unchanged'
