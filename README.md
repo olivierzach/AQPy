@@ -146,16 +146,17 @@ psql pms -f sql/forecast_schema.sql
 psql pms -f sql/online_learning_schema.sql
 ```
 
-## Derived AQI (PM)
-AQPy computes a PM-based AQI from PMS raw data using U.S. EPA breakpoint interpolation:
-- Inputs: `pm25_st` and `pm10_st` from `pms.pi`
+## Instantaneous particle index
+AQPy computes a capped instantaneous index proxy using EPA breakpoint interpolation.
+It is not official daily AQI or NowCast; see [the versioned definition](PARTICLE_INDEX.md).
+- Inputs: `pm25_st` (PM2.5) and `pm100_st` (PM10) from `pms.pi`; `pm10_st` is PM1.0.
 - Truncation before interpolation:
   - PM2.5 truncated to 0.1 `ug/m3`
   - PM10 truncated to 1 `ug/m3`
 - AQI result is `max(subindex_pm25, subindex_pm10)` in range `[0, 500]`
 
 Implementation choice:
-- AQI is derived in SQL view `derived.pms_aqi` (and convenience view `pms_aqi`), not stored back into raw `pi`.
+- The index is derived in `pms_aqi_v2` with a `pms_aqi` compatibility view, not stored back into raw `pi`.
 - This is non-destructive and automatically backfills all historical rows.
 
 Tradeoff:

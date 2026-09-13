@@ -1306,7 +1306,8 @@
         }
       ],
       "title": "PMS aqi_pm: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Instantaneous standard-mass PM2.5/PM10 index proxy using versioned EPA 2024 breakpoints, capped at 500. Not official daily AQI or NowCast; no 24-hour averaging."
     }
   ],
   "refresh": "30s",

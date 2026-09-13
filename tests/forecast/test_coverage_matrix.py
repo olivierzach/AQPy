@@ -71,14 +71,14 @@ class TestModelCoverageMatrix(unittest.TestCase):
     def test_derived_aqi_metric_has_full_family_coverage(self):
         seen = defaultdict(set)
         for spec in self.specs:
-            if spec["database"] == "pms" and spec["table"] == "pms_aqi":
+            if spec["database"] == "pms" and spec["table"] == "pms_aqi_v2":
                 seen[spec["target"]].add(spec["model_type"])
 
         self.assertEqual(set(seen.keys()), {"aqi_pm"})
         self.assertEqual(
             seen["aqi_pm"],
             MODEL_TYPES,
-            msg="pms_aqi.aqi_pm: incomplete model-family coverage",
+            msg="pms_aqi_v2.aqi_pm: incomplete model-family coverage",
         )
 
     def test_model_naming_and_paths_follow_convention(self):

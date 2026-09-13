@@ -109,6 +109,9 @@ def run_online_training_step(
             try:
                 prior = json.loads(model_file.read_text())
                 require_finite(prior, "prior model")
+                if any(prior.get(key)!=value for key,value in [('database',database),('table',table),('target',target)]):
+                    logger.warning('%s: source definition changed; fitting a fresh model',model_name)
+                    prior=None
             except (ValueError, OSError) as exc:
                 logger.warning("%s: rebuilding invalid artifact: %s", model_name, exc)
                 prior = None
@@ -265,6 +268,7 @@ def run_online_training_step(
             "table": table,
             "time_col": time_col,
             "target": target,
+            "target_definition": 'instant_pm_index_epa2024_v2' if table=='pms_aqi_v2' else table,
             "lags": lags,
             "cadence_seconds": estimate_cadence_seconds(timestamps),
             "metrics": {

@@ -25,7 +25,7 @@ class TestDashboardCoverage(unittest.TestCase):
         for col in ("p1", "p2", "p3", "p4", "p5", "p6"):
             self.assertIn(f"{col} AS", count_sql)
 
-        aqi_panel = by_title["Derived AQI (PM2.5/PM10)"]
+        aqi_panel = by_title["Instantaneous PM index (not daily AQI)"]
         aqi_sql = aqi_panel["targets"][0]["rawSql"]
         self.assertIn("aqi_pm", aqi_sql)
         self.assertIn("FROM pms_aqi", aqi_sql)
