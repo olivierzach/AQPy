@@ -21,6 +21,10 @@ def open_inventory(directory):
     conn.row_factory=sqlite3.Row
     conn.execute('PRAGMA cache_size=-4096')
     conn.execute('PRAGMA synchronous=FULL')
+    if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='meta'").fetchone():
+        row=conn.execute("SELECT value FROM meta WHERE key='config'").fetchone()
+        if row:
+            config=json.loads(row[0]);conn.execute(f"PRAGMA max_page_count={config.get('max_mib',512)*1024**2//4096}")
     return conn
 
 

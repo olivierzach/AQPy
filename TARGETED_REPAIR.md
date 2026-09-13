@@ -1,0 +1,44 @@
+# Targeted historical repairs
+
+Start with the frozen inventory and profile in `REPAIR_INVENTORY.md`. Preparation
+keeps every original forecast intact, produces separate corrected outputs only
+where the physical/stability policy applies, and computes forward-error totals
+for unchanged timely forecasts. It plans fresh historical fits only for observed
+missing issue intervals, late/nonfinite/incompatible forecasts, or a corrected
+source definition. The initial 200-reading warm-up must be available.
+
+```bash
+.venv/bin/python run_targeted_repair.py prepare \
+  --directory replays/repair-inventory \
+  --ar-replay replays/ar-repair-20260912
+sudo systemctl enable --now aqi-repair@repair-inventory.timer
+```
+
+The optional AR import reuses an already validated reconstruction rather than
+fitting it again. Inputs, original forecasts, repair tasks, fresh-fit artifacts,
+corrected outputs, unresolved cases and progress remain in the inventory SQLite
+file. Output rows record raw and served values, policy/reason, original row IDs,
+fit provenance, historical issue/cutoff times, baseline and actual alignment.
+
+Fresh fits use only the bounded past window at the repair issue, with deterministic
+seeds; nearby tasks reuse the repair-owned fit until 30 new observations exist.
+This reconstructs a declared fresh-fit experiment, not lost original incremental
+model state. Late forecasts reconstruct from their estimated sensor input time.
+Gaps use a reconstructed ten-minute cadence between observed neighboring issues;
+those timestamps are not asserted to be exact deleted row IDs.
+
+Original timestamp horizons match the nearest actual within 35 seconds. Gap and
+imported replay horizons count the next observations and report the actual
+observation timestamp when available. The `alignment` field distinguishes these
+conventions. Unavailable tails stay unscored; missing warm-up is explicit.
+
+The worker takes the global replay lock, uses one thread/quarter core, enforces a
+256 MiB address-space ceiling, and yields to live jobs or low headroom. Tasks,
+artifacts and outputs commit atomically. Code changes refuse resume. The timer
+does not start automatically on installation; disable it after completion.
+
+Completion is not publication approval. Independently verify source fingerprints,
+planned coverage, causal fit/prediction calculations, physical/stability policy,
+actual alignment and scores. `repair_reference.py` supplies separate mathematical
+AR/NN/GRU fit and rollout implementations for this audit. Review time-series
+behavior and persistence comparisons as well as execution success.

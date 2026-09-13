@@ -1,0 +1,11 @@
+[Unit]
+Description=Resume AQPy targeted historical repairs %i
+
+[Timer]
+OnActiveSec=5s
+OnUnitInactiveSec=30s
+AccuracySec=1s
+Unit=aqi-repair@%i.service
+
+[Install]
+WantedBy=timers.target

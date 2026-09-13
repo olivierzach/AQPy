@@ -1,0 +1,25 @@
+[Unit]
+Description=AQPy targeted historical repairs %i
+After=postgresql.service
+ConditionPathExists=/home/pi/AQPy/replays/%i/inventory.sqlite
+ConditionPathExists=!/home/pi/AQPy/replays/%i/repairs-complete
+
+[Service]
+Type=oneshot
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/AQPy
+Environment=OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1
+ExecStart=/home/pi/AQPy/.venv/bin/python run_targeted_repair.py run --directory /home/pi/AQPy/replays/%i --seconds 45
+CPUQuota=25%
+MemoryMax=256M
+LimitAS=256M
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=5min
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/pi/AQPy/replays
+PrivateTmp=true
+UMask=0077
