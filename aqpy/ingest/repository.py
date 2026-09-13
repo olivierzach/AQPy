@@ -1,4 +1,5 @@
 from aqpy.common.db import connect_db
+from aqpy.forecast.validation import require_finite
 from aqpy.ingest.interfaces import ClimateReading, PMSData
 
 
@@ -29,6 +30,7 @@ class PostgresIngestRepository:
         self.cur_bme = self.conn_bme.cursor()
 
     def insert_pms_sample(self, pms_data: PMSData):
+        require_finite(pms_data, "PMS reading")
         self.cur_pms.execute(
             INSERT_PMS,
             (
@@ -48,6 +50,7 @@ class PostgresIngestRepository:
         )
 
     def insert_bme_sample(self, bme_data: ClimateReading):
+        require_finite([bme_data.temperature, bme_data.humidity, bme_data.pressure], "BME reading")
         self.cur_bme.execute(
             INSERT_BME,
             (

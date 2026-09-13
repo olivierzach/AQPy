@@ -508,3 +508,10 @@ python3 -m unittest discover -s tests -p "test_*.py"
 
 # Maintenance 
 `systemctl` stores logs that can be accessed through `journalctl -u aqi`. `journalctl` uses the `less` linux utility to show the logs. A brief summary of `aqi.service` can be obtained by running `systemctl status aqi`. If the sensors stop working (or I didn't code things robustly enough) the python runtime errors will be recorded by `systemctl`. If the `read_sensors.py` script fails, `systemctl` will automatically restart it however if it fails too many times it will wait longer and longer between retries. 
+
+## Data health, sensor snapshots, and chronological replay
+
+See [DATA_HEALTH.md](DATA_HEALTH.md) for the scheduled watchdog, failure handling,
+and bounded daily sensor backups. See [REPLAY.md](REPLAY.md) for isolated,
+resumable replay across AR, NN, and RNN models. Replay is opt-in and never runs
+as part of ordinary bring-up; live forecasts and training continue independently.

@@ -165,6 +165,12 @@ SYSTEMD_FILES=(
   "aqi-forecast.timer"
   "aqi-retention.service"
   "aqi-retention.timer"
+  "aqi-health.service"
+  "aqi-health.timer"
+  "aqi-sensor-backup.service"
+  "aqi-sensor-backup.timer"
+  "aqi-replay@.service"
+  "aqi-replay@.timer"
 )
 
 for file in "${SYSTEMD_FILES[@]}"; do
@@ -226,6 +232,10 @@ fi
 echo "[bringup] Ensuring writable model artifact directory..."
 install -d -m 0755 -o "${APP_USER}" -g "${APP_GROUP}" "${APP_DIR}/models"
 
+for state_dir in replays health sensor-backups; do
+  install -d -m 0700 -o "${APP_USER}" -g "${APP_GROUP}" "${APP_DIR}/${state_dir}"
+done
+
 echo "[bringup] Installing systemd units into ${INSTALL_DIR}..."
 for file in "${SYSTEMD_FILES[@]}"; do
   tmp_rendered="$(mktemp)"
@@ -268,6 +278,8 @@ if [[ "${RUN_BOOTSTRAP}" -eq 1 ]]; then
   echo "[bringup] Bootstrapping model artifacts and initial predictions..."
   sudo -u "${APP_USER}" "${REPO_ROOT}/scripts/bootstrap_models.sh"
 fi
+
+systemctl enable --now aqi-health.timer aqi-sensor-backup.timer
 
 echo "[bringup] Status summary:"
 systemctl --no-pager --full status \

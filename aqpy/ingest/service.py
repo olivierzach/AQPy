@@ -103,9 +103,14 @@ class AQIngestService:
         return result
 
     def run_forever(self, max_cycles=None):
+        failures = {}
         cycles = 0
         while max_cycles is None or cycles < max_cycles:
             cycle_result = self.run_cycle()
+            for name, ok in cycle_result.items():
+                failures[name] = 0 if ok else failures.get(name, 0) + 1
+                if failures[name] >= 5:
+                    raise RuntimeError(f"{name}: five consecutive failed sensor cycles")
             ok_count = sum(1 for v in cycle_result.values() if v)
             if ok_count > 0:
                 logger.info("Recorded sensor sample %s", cycle_result)
@@ -155,9 +160,14 @@ class LegacyAQIngestService:
         return result
 
     def run_forever(self, max_cycles=None):
+        failures = {}
         cycles = 0
         while max_cycles is None or cycles < max_cycles:
             cycle_result = self.run_cycle()
+            for name, ok in cycle_result.items():
+                failures[name] = 0 if ok else failures.get(name, 0) + 1
+                if failures[name] >= 5:
+                    raise RuntimeError(f"{name}: five consecutive failed sensor cycles")
             if cycle_result["pms"] or cycle_result["bme"]:
                 logger.info(
                     "Recorded sensor sample (pms=%s, bme=%s)",

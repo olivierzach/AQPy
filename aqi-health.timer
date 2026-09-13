@@ -1,0 +1,10 @@
+[Unit]
+Description=Check AQPy data health every five minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitInactiveSec=5min
+Unit=aqi-health.service
+
+[Install]
+WantedBy=timers.target

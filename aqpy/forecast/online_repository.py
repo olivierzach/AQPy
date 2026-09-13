@@ -133,6 +133,8 @@ def upsert_training_state(
 
 
 def insert_training_metric(conn, metric_row, commit=True):
+    from aqpy.forecast.validation import require_finite
+    require_finite(metric_row, "training metric")
     query = """
     INSERT INTO online_training_metrics (
         model_name,

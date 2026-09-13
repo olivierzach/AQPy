@@ -226,7 +226,7 @@ def run_online_training_step(
                         "bh": np.array(prior["encoder"]["bh"], dtype=float),
                     }
             rnn_model = fit_gru_lite_head(
-                values=np.array(values, dtype=float),
+                values=np.array(values[:split_idx + seq_len], dtype=float),
                 seq_len=seq_len,
                 hidden_dim=hidden_dim,
                 ridge=rnn_ridge,

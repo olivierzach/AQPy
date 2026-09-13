@@ -1,0 +1,10 @@
+[Unit]
+Description=Snapshot raw sensor readings daily
+
+[Timer]
+OnCalendar=*-*-* 00:15:00 UTC
+Persistent=true
+Unit=aqi-sensor-backup.service
+
+[Install]
+WantedBy=timers.target

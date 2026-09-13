@@ -1,0 +1,25 @@
+[Unit]
+Description=Save bounded daily raw sensor partitions
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/AQPy
+EnvironmentFile=/home/pi/AQPy/.env
+Environment=OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1
+ExecStart=/home/pi/AQPy/.venv/bin/python run_sensor_backup.py --keep-days 365 --max-mib 512
+MemoryMax=128M
+LimitAS=128M
+MemorySwapMax=0
+CPUQuota=25%
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=30min
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/pi/AQPy/sensor-backups
+PrivateTmp=true
+UMask=0077
