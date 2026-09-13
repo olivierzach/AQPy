@@ -6,3 +6,6 @@ models/*.json
 .DS_Store
 .vscode
 .env
+replays/
+health/
+sensor-backups/

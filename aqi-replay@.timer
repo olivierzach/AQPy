@@ -1,0 +1,10 @@
+[Unit]
+Description=Resume AQPy chronological replay %i
+
+[Timer]
+OnBootSec=5min
+OnUnitInactiveSec=30s
+Unit=aqi-replay@%i.service
+
+[Install]
+WantedBy=timers.target

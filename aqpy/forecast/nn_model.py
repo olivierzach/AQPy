@@ -70,8 +70,9 @@ def train_mlp_regressor(
     n = len(Xs)
     losses = []
 
+    rng = np.random.default_rng(seed)
     for _ in range(max(1, epochs)):
-        idx = np.random.permutation(n)
+        idx = rng.permutation(n)
         X_ep = Xs[idx]
         y_ep = ys[idx]
         for start in range(0, n, max(1, batch_size)):
