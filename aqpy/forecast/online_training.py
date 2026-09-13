@@ -187,12 +187,7 @@ def run_online_training_step(
                     and prior.get("hidden_dim") == hidden_dim
                     and prior.get("input_dim") == X_train.shape[1]
                 ):
-                    init = {
-                        "w1": np.array(prior["w1"], dtype=float),
-                        "b1": np.array(prior["b1"], dtype=float),
-                        "w2": np.array(prior["w2"], dtype=float),
-                        "b2": np.array(prior["b2"], dtype=float),
-                    }
+                    init = prior
 
         if model_type == "adaptive_ar":
             ar_model = fit_weighted_ar(
@@ -245,7 +240,7 @@ def run_online_training_step(
                 learning_rate=learning_rate,
                 epochs=epochs,
                 batch_size=batch_size,
-                init=init,
+                init_model=init,
             )
             holdout_pred = predict_batch(nn_model, X_holdout)
             train_loss = nn_model.get("train_loss")

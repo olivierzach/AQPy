@@ -3,11 +3,24 @@ import unittest
 
 import numpy as np
 
-from aqpy.forecast.nn_model import predict_batch, train_mlp_regressor
+from aqpy.forecast.nn_model import predict_batch, train_mlp_regressor,rebase_params
 from aqpy.forecast.retention import compute_delete_cutoff
 
 
 class TestNNOnline(unittest.TestCase):
+    def test_rebase_preserves_predictions_under_changed_normalization(self):
+        rng=np.random.default_rng(23)
+        X=rng.normal(size=(100,4));y=2*X[:,0]+10
+        old=train_mlp_regressor(X,y,epochs=3,seed=23)
+        original=predict_batch(old,X)
+        new_mean=np.array([3.,-5.,1.,10.]);new_std=np.array([.2,5.,2.,7.])
+        params=rebase_params(old,new_mean,new_std,30.,4.)
+        rebased={**old,**{k:v.tolist() for k,v in params.items()},'x_mean':new_mean.tolist(),
+                 'x_std':new_std.tolist(),'y_mean':30.,'y_std':4.}
+        np.testing.assert_allclose(predict_batch(rebased,X),original,rtol=1e-10,atol=1e-10)
+        # The source artifact is unchanged by rebasing.
+        np.testing.assert_array_equal(predict_batch(old,X),original)
+
     def test_train_mlp_and_predict_batch(self):
         rng = np.random.default_rng(7)
         X = rng.normal(size=(120, 4))

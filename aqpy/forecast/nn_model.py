@@ -53,6 +53,7 @@ def train_mlp_regressor(
     batch_size=64,
     seed=42,
     init=None,
+    init_model=None,
 ):
     x_mean = np.mean(X_train, axis=0)
     x_std = np.std(X_train, axis=0)
@@ -66,7 +67,10 @@ def train_mlp_regressor(
     ys = ((y_train - y_mean) / y_std).reshape(-1, 1)
 
     input_dim = X_train.shape[1]
-    params = init if init is not None else init_params(input_dim, hidden_dim, seed=seed)
+    if init is not None and init_model is not None:
+        raise ValueError('Choose either parameter initialization or a normalized prior model')
+    params = (rebase_params(init_model,x_mean,x_std,y_mean,y_std) if init_model is not None
+              else init if init is not None else init_params(input_dim, hidden_dim, seed=seed))
     n = len(Xs)
     losses = []
 
@@ -102,6 +106,19 @@ def train_mlp_regressor(
         "train_loss": losses[-1] if losses else None,
     }
     return model
+
+
+def rebase_params(model,x_mean,x_std,y_mean,y_std):
+    """Preserve the prior function when the rolling window's normalization changes."""
+    old_w1=np.asarray(model['w1'],dtype=float)
+    old_x_std=np.asarray(model['x_std'],dtype=float)
+    ratio=np.asarray(x_std)/old_x_std
+    shift=(np.asarray(x_mean)-np.asarray(model['x_mean']))/old_x_std
+    y_ratio=float(model['y_std'])/float(y_std)
+    return {'w1':old_w1*ratio[:,None],
+            'b1':np.asarray(model['b1'],dtype=float)+shift@old_w1,
+            'w2':np.asarray(model['w2'],dtype=float)*y_ratio,
+            'b2':np.asarray(model['b2'],dtype=float)*y_ratio+(float(model['y_mean'])-float(y_mean))/float(y_std)}
 
 
 def _predict_one(model, feature_row):
