@@ -62,33 +62,34 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT t AS \"time\", temperature AS \"actual\"\nFROM pi\nORDER BY t;",
+          "rawSql": "SELECT t AS \"time\", temperature AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
           "refId": "A"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_temperature' AND target = 'temperature' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "Temperature: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -130,33 +131,34 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT t AS \"time\", humidity AS \"actual\"\nFROM pi\nORDER BY t;",
+          "rawSql": "SELECT t AS \"time\", humidity AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
           "refId": "A"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_humidity' AND target = 'humidity' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "Humidity: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -199,33 +201,34 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT t AS \"time\", pressure AS \"actual\"\nFROM pi\nORDER BY t;",
+          "rawSql": "SELECT t AS \"time\", pressure AS \"actual\"\nFROM pi\nWHERE $__timeFilter(t)\nORDER BY t;",
           "refId": "A"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_pressure' AND target = 'pressure' AND horizon_step = 1\n) latest\nWHERE rn = 1\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "Pressure: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -286,7 +289,8 @@
         }
       ],
       "title": "Temperature Model MAE Over Time",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -347,7 +351,8 @@
         }
       ],
       "title": "Humidity Model MAE Over Time",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -409,7 +414,8 @@
         }
       ],
       "title": "Pressure Model MAE Over Time",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -459,26 +465,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_pm10_st' AND target = 'pm10_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS pm10_st: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -528,26 +535,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_pm25_st' AND target = 'pm25_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS pm25_st: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -597,26 +605,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_pm100_st' AND target = 'pm100_st' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS pm100_st: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -666,26 +675,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_pm10_en' AND target = 'pm10_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS pm10_en: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -735,26 +745,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_pm25_en' AND target = 'pm25_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS pm25_en: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -804,26 +815,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_pm100_en' AND target = 'pm100_en' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS pm100_en: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -873,26 +885,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_p1' AND target = 'p1' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS p1: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -942,26 +955,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_p2' AND target = 'p2' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS p2: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -1011,26 +1025,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_p3' AND target = 'p3' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS p3: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -1080,26 +1095,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_p4' AND target = 'p4' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS p4: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -1149,26 +1165,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_p5' AND target = 'p5' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS p5: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -1218,26 +1235,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_p6' AND target = 'p6' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS p6: Actual vs All Models",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     },
     {
       "datasource": {
@@ -1287,27 +1305,27 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_nn_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"nn\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_nn_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "B"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_ar_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"adaptive_ar\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_ar_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "C"
         },
         {
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions\n  WHERE model_name = 'aqpy_rnn_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
+          "rawSql": "SELECT predicted_for AS \"time\", yhat AS \"gru_lite\"\nFROM (\n  SELECT predicted_for, yhat,\n         row_number() OVER (\n           PARTITION BY predicted_for, model_name, target, horizon_step\n           ORDER BY generated_at DESC\n         ) AS rn\n  FROM predictions_repaired\n  WHERE $__timeFilter(predicted_for) AND model_name = 'aqpy_rnn_aqi_pm' AND target = 'aqi_pm' AND horizon_step = 1\n) latest\nWHERE rn = 1 AND $__timeFilter(predicted_for)\nORDER BY predicted_for;",
           "refId": "D"
         }
       ],
       "title": "PMS aqi_pm: Actual vs All Models",
       "type": "timeseries",
-      "description": "Instantaneous standard-mass PM2.5/PM10 index proxy using versioned EPA 2024 breakpoints, capped at 500. Not official daily AQI or NowCast; no 24-hour averaging."
+      "description": "Instantaneous standard-mass PM2.5/PM10 index proxy using versioned EPA 2024 breakpoints, capped at 500. Not official daily AQI or NowCast; no 24-hour averaging. Forecast lines include validated historical corrections and reconstructions when available. Original forecasts remain preserved; inspect the repair-history dashboard for provenance and reconstruction scores."
     }
   ],
   "refresh": "30s",
@@ -1329,6 +1347,6 @@
   "timezone": "",
   "title": "AQPy Edge Sensors + Forecasts",
   "uid": "aqpy-overview",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }

@@ -1,0 +1,96 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "table",
+      "title": "BME published repairs: provenance and error",
+      "description": "Only independently audited, published repairs. Scores compare reconstructed or corrected values against aligned observed readings. They are not original holdout metrics. Lower MAE is better; compare served and raw errors separately with last-reading persistence.",
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-bme"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 12
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT h.model_name,h.provenance,h.output_policy,count(*) AS rows,\n  count(h.actual) AS scored_rows,avg(abs(h.yhat-h.actual)) AS served_mae,\n  avg(abs(h.raw_yhat-h.actual)) AS raw_mae,\n  avg(abs(h.baseline-h.actual)) AS persistence_mae\nFROM history_repair.predictions h JOIN history_repair.runs r USING(run_id)\nWHERE r.published_at IS NOT NULL AND $__timeFilter(h.predicted_for)\nGROUP BY h.model_name,h.provenance,h.output_policy\nORDER BY h.model_name,h.provenance,h.output_policy;"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "PMS published repairs: provenance and error",
+      "description": "Only independently audited, published repairs. Scores compare reconstructed or corrected values against aligned observed readings. They are not original holdout metrics. Lower MAE is better; compare served and raw errors separately with last-reading persistence.",
+      "datasource": {
+        "type": "postgres",
+        "uid": "aqpy-pms"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 12
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code",
+          "rawSql": "SELECT h.model_name,h.provenance,h.output_policy,count(*) AS rows,\n  count(h.actual) AS scored_rows,avg(abs(h.yhat-h.actual)) AS served_mae,\n  avg(abs(h.raw_yhat-h.actual)) AS raw_mae,\n  avg(abs(h.baseline-h.actual)) AS persistence_mae\nFROM history_repair.predictions h JOIN history_repair.runs r USING(run_id)\nWHERE r.published_at IS NOT NULL AND $__timeFilter(h.predicted_for)\nGROUP BY h.model_name,h.provenance,h.output_policy\nORDER BY h.model_name,h.provenance,h.output_policy;"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "tags": [
+    "aqpy",
+    "history-repair"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15d",
+    "to": "now"
+  },
+  "timezone": "",
+  "title": "AQPy Verified Repair History",
+  "uid": "aqpy-repair-history",
+  "version": 1
+}

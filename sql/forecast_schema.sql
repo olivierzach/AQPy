@@ -30,3 +30,5 @@ CREATE TABLE IF NOT EXISTS model_registry (
     artifact_path TEXT NOT NULL,
     PRIMARY KEY (model_name, model_version)
 );
+
+\ir repair_history.sql

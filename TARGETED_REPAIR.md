@@ -52,3 +52,21 @@ new fit and recursive prediction using an independent numerical implementation,
 checks causal cutoffs, repair coverage, physical policy, original score aggregates,
 actual alignment, source fingerprints and exported rows. Any discrepancy returns
 a nonzero exit status. A successful worker exit alone is not validation.
+
+Apply `sql/repair_history.sql` to each forecast database, then run
+`run_targeted_repair.py publish --directory DIR`. Publication requires a finalized
+independent PASS audit and unchanged file hashes. It imports in batches of 256,
+checks every database row against the audited local evidence, and only then marks
+that database's run visible. Re-running is idempotent. `predictions_repaired`
+combines originals with explicit corrections/reconstructions; original tables
+remain intact. Unrecoverable rows are listed in `history_repair.unresolved` and
+excluded from the combined view. Original rows outside the audited interval are
+still labeled `original`, not certified as verified. Publication across the two
+databases is resumable, not a distributed atomic transaction.
+
+Storage has hard ceilings: one million repair rows and one million unresolved
+rows per database, 128 runs, and a 1 GiB preflight database-size limit. Publication
+refuses further work at the ceilings; it does not silently delete evidence.
+The row and run limits bound growth during import as well as between runs.
+Corrected/reconstructed error scores must be distinguished from original model
+performance; output fallback is not evidence that the raw model became better.

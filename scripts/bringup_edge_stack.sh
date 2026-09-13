@@ -96,6 +96,8 @@ ALTER TABLE IF EXISTS retention_runs OWNER TO ${app_user};
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${app_user};
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${app_user};
 GRANT CREATE ON SCHEMA public TO ${app_user};
+GRANT USAGE ON SCHEMA history_repair TO ${app_user};
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA history_repair TO ${app_user};
 SQL
 }
 
