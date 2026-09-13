@@ -72,6 +72,13 @@ def _audit(root):
             for row in conn.execute('SELECT * FROM forecasts WHERE model=? ORDER BY target_ts,id',(m['model'],)):
                 digest.update(json.dumps(tuple(row),sort_keys=True).encode());count+=1
             check(count==m['rows'] and digest.hexdigest()==m['sha256'],'Original forecast fingerprint mismatch: '+m['model'])
+            provenance_hash=conn.execute('SELECT value FROM meta WHERE key=?',('forecast_sources_sha256:'+m['model'],)).fetchone()
+            if provenance_hash:
+                digest=hashlib.sha256();count=0
+                for row in conn.execute('''SELECT s.model,s.id,s.source_table FROM forecast_sources s JOIN forecasts f
+                    ON f.model=s.model AND f.id=s.id WHERE s.model=? ORDER BY f.target_ts,f.id''',(m['model'],)):
+                    digest.update(json.dumps(tuple(row),sort_keys=True).encode());count+=1
+                check(count==m['rows'] and digest.hexdigest()==provenance_hash[0],'Forecast source provenance fingerprint mismatch')
         ar=conn.execute("SELECT value FROM meta WHERE key='ar_replay_path'").fetchone()
         if ar:
             ar_root=Path(ar[0]);proof=json.loads((ar_root/'validation.json').read_text())
@@ -83,6 +90,10 @@ def _audit(root):
             conn.execute('ATTACH DATABASE ? AS ar',(f'file:{ar_root}/replay.sqlite?mode=ro',))
         for model in conn.execute('SELECT * FROM repair_models ORDER BY model').fetchall():
             name=model['model'];spec=json.loads(model['spec']);target_name=spec['target']
+            original_spec=json.loads(conn.execute('SELECT spec FROM models WHERE model=?',(name,)).fetchone()[0])
+            if target_name=='aqi_pm':original_spec['table']='pms_aqi_v2'
+            check(spec==original_spec,'Repair specification differs from frozen model')
+            check(model['source']=='.'.join(spec[k] for k in ('database','table','target')),'Wrong model source')
             rows=conn.execute('SELECT ts,y FROM samples WHERE source=? ORDER BY ts',(model['source'],)).fetchall()
             times=[r['ts'] for r in rows];values=[r['y'] for r in rows]
             fits={};max_fit_difference=0.
@@ -108,7 +119,13 @@ def _audit(root):
                 if seq<0:
                     check(unresolved is not None and output is None,'Unreported missing pre-issue history');continue
                 raw=original['yhat'];finite=raw is not None and isinstance(raw,(int,float)) and math.isfinite(raw)
-                rebuild=target_name=='aqi_pm' or not finite or original['generated']>=original['target_ts'] or original['trained_at'] is None or original['trained_at']>original['generated']
+                old_target=False
+                if target_name=='aqi_pm':
+                    if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='forecast_sources'").fetchone():
+                        table=conn.execute('SELECT source_table FROM forecast_sources WHERE model=? AND id=?',(name,original['id'])).fetchone()[0]
+                    else:table=json.loads(conn.execute('SELECT spec FROM models WHERE model=?',(name,)).fetchone()[0])['table']
+                    old_target=table!='pms_aqi_v2'
+                rebuild=old_target or not finite or original['generated']>=original['target_ts'] or original['trained_at'] is None or original['trained_at']>original['generated']
                 reason=reference_policy(target_name,raw,values[max(0,seq-49):seq+1])[1] if finite else None
                 needed=rebuild or reason!='unchanged'
                 check(bool(output or unresolved)==needed,'Wrong original repair selection: '+name+'/'+key)
@@ -116,6 +133,9 @@ def _audit(root):
                 if output:
                     check(output['original_id']==original['id'] and output['horizon']==original['horizon'] and output['target_ts']==original['target_ts'],'Original repair identity mismatch')
                     if not rebuild:check(output['raw_yhat']==original['yhat'] and output['issued']==original['generated'],'Original prediction overwritten')
+                    else:
+                        expected_issue=min(original['generated'],original['target_ts']-60*original['horizon']) if original['generated']>=original['target_ts'] else original['generated']
+                        check(output['issued']==expected_issue,'Reconstruction issuance differs from historical plan')
                 elif not needed:
                     i=bisect.bisect_left(times,original['target_ts']);candidates=[k for k in (i-1,i) if 0<=k<len(values)]
                     k=min(candidates,key=lambda k:abs(times[k]-original['target_ts']))

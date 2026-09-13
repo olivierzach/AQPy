@@ -10,7 +10,7 @@ from aqpy.forecast.repair_inventory import analyze,open_inventory
 from aqpy.forecast import targeted_repair as repair
 
 
-def fixture(directory,family='adaptive_ar',future_change=False):
+def fixture(directory,family='adaptive_ar',future_change=False,prepare=True):
     root=Path(directory);conn=open_inventory(root)
     conn.executescript('''CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT);
       CREATE TABLE sources(source TEXT PRIMARY KEY,rows INTEGER,first REAL,last REAL,sha256 TEXT);
@@ -37,10 +37,31 @@ def fixture(directory,family='adaptive_ar',future_change=False):
         digest.update(json.dumps(tuple(row),sort_keys=True).encode())
     conn.execute('UPDATE models SET sha256=?',(digest.hexdigest(),))
     conn.commit();conn.close();(root/'snapshot-complete').touch();analyze(root)
-    repair.prepare(root)
+    if prepare:repair.prepare(root)
 
 
 class TargetedRepairTests(unittest.TestCase):
+    def test_target_transition_only_rebuilds_old_definition(self):
+        from aqpy.forecast.repair_validation import audit
+        with tempfile.TemporaryDirectory() as d:
+            fixture(d,prepare=False);c=open_inventory(d)
+            spec=json.loads(c.execute('SELECT spec FROM models').fetchone()[0])
+            spec.update(target='aqi_pm',table='pms_aqi_v2')
+            c.execute('UPDATE models SET spec=?',(json.dumps(spec),))
+            c.execute('CREATE TABLE forecast_sources(model TEXT,id INTEGER,source_table TEXT,PRIMARY KEY(model,id))')
+            digest=hashlib.sha256()
+            for pid in (1,2,3,4):
+                row=('test',pid,'pms_aqi' if pid==1 else 'pms_aqi_v2')
+                c.execute('INSERT INTO forecast_sources VALUES (?,?,?)',row)
+                digest.update(json.dumps(row,sort_keys=True).encode())
+            c.execute('INSERT INTO meta VALUES (?,?)',('forecast_sources_sha256:test',digest.hexdigest()))
+            c.commit();c.close();analyze(d);repair.prepare(d);repair.run(d,60,check_resources=False)
+            c=open_inventory(d)
+            self.assertEqual(c.execute("SELECT provenance FROM repaired WHERE key='original:1'").fetchone()[0],'targeted_reconstruction:corrected_target')
+            self.assertEqual(c.execute("SELECT provenance FROM repaired WHERE key='original:2'").fetchone()[0],'corrected_original')
+            self.assertIsNone(c.execute("SELECT 1 FROM repaired WHERE key='original:4'").fetchone())
+            c.close();result=audit(d);self.assertEqual(result['status'],'PASS',result['failures'])
+
     def test_only_defects_and_gaps_get_outputs_and_originals_stay_intact(self):
         with tempfile.TemporaryDirectory() as d:
             fixture(d);repair.run(d,seconds=60,check_resources=False)

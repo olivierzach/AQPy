@@ -68,6 +68,18 @@ def add_task(conn,name,issue,target,reason):
                  (name,issue,json.dumps(sorted(targets,key=lambda t:(t['horizon'],t['key'])),sort_keys=True),reason))
 
 
+def changed_target(conn,name,original_id,spec):
+    """Use per-forecast provenance across a target-definition deployment."""
+    if spec['target']!='aqi_pm':return False
+    if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='forecast_sources'").fetchone():
+        row=conn.execute('SELECT source_table FROM forecast_sources WHERE model=? AND id=?',(name,original_id)).fetchone()
+        if row is None:raise ValueError('Missing frozen forecast source provenance')
+        table=row[0]
+    else:
+        table=json.loads(conn.execute('SELECT spec FROM models WHERE model=?',(name,)).fetchone()[0])['table']
+    return table!='pms_aqi_v2'
+
+
 def put_output(conn,name,key,issue,target,h,raw,history,actual,actual_at,cutoff,
                provenance,original_id=None,fit_id=None,alignment='nearest_35s',target_name=None):
     if target_name is None:
@@ -98,13 +110,17 @@ def prepare(directory,ar_replay=None):
     try:
         # Corrected target derived only from the frozen raw particle measurements.
         new_source='pms.pms_aqi_v2.aqi_pm'
-        if not conn.execute('SELECT 1 FROM sources WHERE source=?',(new_source,)).fetchone():
+        needs_index=any(item['spec']['target']=='aqi_pm' for item in profile['models'])
+        if needs_index and not conn.execute('SELECT 1 FROM sources WHERE source=?',(new_source,)).fetchone():
+            if any(not conn.execute('SELECT 1 FROM sources WHERE source=?',(source,)).fetchone()
+                   for source in ('pms.pi.pm100_st','pms.pi.pm25_st')):
+                raise ValueError('Corrected index requires frozen PM2.5 and PM10 sensor sources')
             with conn:
                 digest=hashlib.sha256();n=0;first=last=None
-                for row in conn.execute('''SELECT a.seq,a.ts,a.y,b.y FROM samples a JOIN samples b ON b.source=? AND b.seq=a.seq
+                for row in conn.execute('''SELECT a.seq,a.ts,a.y,b.y FROM samples a JOIN samples b ON b.source=? AND b.ts=a.ts
                     WHERE a.source=? ORDER BY a.seq''',('pms.pi.pm100_st','pms.pi.pm25_st')):
                     seq,ts,p25,p10=row;y=float(particle_index(p25,p10))
-                    conn.execute('INSERT INTO samples VALUES (?,?,?,?)',(new_source,seq,ts,y))
+                    conn.execute('INSERT INTO samples VALUES (?,?,?,?)',(new_source,n,ts,y))
                     digest.update(json.dumps([ts,y],sort_keys=True).encode());n+=1
                     if first is None:first=ts
                     last=ts
@@ -127,10 +143,11 @@ def prepare(directory,ar_replay=None):
                     invalid=p['yhat'] is None or not isinstance(p['yhat'],(float,int)) or not math.isfinite(p['yhat'])
                     late=p['generated']>=p['target_ts']
                     bad_model=p['trained_at'] is None or p['trained_at']>p['generated']
-                    if is_aqi or invalid or late or bad_model:
+                    target_changed=changed_target(conn,name,p['id'],spec)
+                    if target_changed or invalid or late or bad_model:
                         # Late rows reconstruct from their input-time origin, never after their target.
                         issue=min(p['generated'],p['target_ts']-60*p['horizon']) if late else p['generated']
-                        reason='corrected_target' if is_aqi else 'late' if late else 'invalid_model' if bad_model else 'nonfinite'
+                        reason='corrected_target' if target_changed else 'late' if late else 'invalid_model' if bad_model else 'nonfinite'
                         add_task(conn,name,issue,{'key':key,'horizon':p['horizon'],'target_ts':p['target_ts'],'original_id':p['id']},reason)
                         continue
                     actual,actual_at=matched_actual(times,values,p['generated'],p['target_ts'])
