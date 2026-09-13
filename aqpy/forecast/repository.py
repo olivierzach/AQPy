@@ -2,6 +2,7 @@ import re
 
 import numpy as np
 from psycopg2.extras import Json
+from aqpy.forecast.validation import require_finite
 
 
 IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -123,6 +124,9 @@ def register_model(conn, payload):
 
 
 def insert_predictions(conn, payload_rows):
+    payload_rows = list(payload_rows)
+    for row in payload_rows:
+        require_finite(row[-1], "prediction.yhat")
     query = """
     INSERT INTO predictions (
         generated_at,

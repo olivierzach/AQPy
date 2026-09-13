@@ -1,12 +1,15 @@
 import datetime as dt
 import json
 import pathlib
+import logging
+import os
+import tempfile
 
 import numpy as np
 
 from aqpy.common.db import connect_db
 from aqpy.forecast.adaptive_ar import (
-    fit_recursive_least_squares,
+    fit_weighted_ar,
     predict_batch as ar_predict_batch,
 )
 from aqpy.forecast.features import (
@@ -32,6 +35,9 @@ from aqpy.forecast.online_repository import (
     upsert_training_state,
 )
 from aqpy.forecast.repository import ensure_registry_table, fetch_series, validate_identifier
+from aqpy.forecast.validation import require_finite
+
+logger = logging.getLogger(__name__)
 
 
 def _timestamp_version():
@@ -92,14 +98,26 @@ def run_online_training_step(
     lags = sorted(set(lags or [1, 2, 3, 6, 12]))
 
     conn = connect_db(database)
+    staged_path = None
     try:
         ensure_online_tables(conn)
         ensure_registry_table(conn)
         state = get_training_state(conn, model_name)
+        model_file = pathlib.Path(model_path)
+        prior = None
+        if model_file.exists():
+            try:
+                prior = json.loads(model_file.read_text())
+                require_finite(prior, "prior model")
+            except (ValueError, OSError) as exc:
+                logger.warning("%s: rebuilding invalid artifact: %s", model_name, exc)
+                prior = None
 
         if state is not None:
             new_rows = count_new_rows(conn, table, time_col, state["last_seen_ts"])
-            if new_rows < min_new_rows:
+            artifact_current = prior is not None and prior.get("model_version") == state["model_version"]
+            solver_current = model_type != "adaptive_ar" or (prior or {}).get("solver") == "windowed_weighted_ridge_v1"
+            if new_rows < min_new_rows and artifact_current and solver_current:
                 return {
                     "status": "skipped",
                     "reason": f"only {new_rows} new rows (min {min_new_rows})",
@@ -109,6 +127,8 @@ def run_online_training_step(
             new_rows = -1
 
         timestamps, values = fetch_series(conn, table, time_col, target, history_hours)
+        if not np.isfinite(values).all():
+            raise ValueError(f"{model_name}: source readings contain non-finite numbers")
         if max_train_rows is not None and max_train_rows > 0 and len(values) > max_train_rows:
             timestamps = timestamps[-max_train_rows:]
             values = values[-max_train_rows:]
@@ -160,9 +180,7 @@ def run_online_training_step(
             holdout_rows = len(X_holdout)
 
         init = None
-        model_file = pathlib.Path(model_path)
-        if model_file.exists():
-            prior = json.loads(model_file.read_text())
+        if prior is not None:
             if model_type == "nn_mlp":
                 if (
                     prior.get("model_type") == "nn_mlp"
@@ -175,20 +193,13 @@ def run_online_training_step(
                         "w2": np.array(prior["w2"], dtype=float),
                         "b2": np.array(prior["b2"], dtype=float),
                     }
-            elif model_type == "adaptive_ar" and prior.get("model_type") == "adaptive_ar":
-                if len(prior.get("theta", [])) == X_train.shape[1]:
-                    init = {
-                        "theta": np.array(prior["theta"], dtype=float),
-                        "P": np.array(prior["P"], dtype=float),
-                    }
 
         if model_type == "adaptive_ar":
-            ar_model = fit_recursive_least_squares(
+            ar_model = fit_weighted_ar(
                 X_train=X_train,
                 y_train=y_train,
                 forgetting_factor=forgetting_factor,
                 delta=ar_delta,
-                init=init,
             )
             holdout_pred = ar_predict_batch(ar_model, X_holdout)
             train_loss = float(np.mean((ar_predict_batch(ar_model, X_train) - y_train) ** 2))
@@ -196,8 +207,7 @@ def run_online_training_step(
             model_payload = ar_model
         elif model_type == "rnn_lite_gru":
             encoder_init = None
-            if model_file.exists():
-                prior = json.loads(model_file.read_text())
+            if prior is not None:
                 if (
                     prior.get("model_type") == "rnn_lite_gru"
                     and int(prior.get("seq_len", -1)) == int(seq_len)
@@ -290,8 +300,14 @@ def run_online_training_step(
             **model_payload,
         }
 
+        require_finite(artifact, model_name)
+        serialized = json.dumps(artifact, indent=2, allow_nan=False)
         model_file.parent.mkdir(parents=True, exist_ok=True)
-        model_file.write_text(json.dumps(artifact, indent=2))
+        with tempfile.NamedTemporaryFile(mode="w", dir=model_file.parent, delete=False) as staged:
+            staged_path = staged.name
+            staged.write(serialized)
+            staged.flush()
+            os.fsync(staged.fileno())
 
         last_seen_ts = timestamps[-1]
         update_from = state["last_seen_ts"] if state is not None else None
@@ -307,6 +323,7 @@ def run_online_training_step(
             source_table=table,
             source_time_col=time_col,
             source_target_col=target,
+            commit=False,
         )
         insert_training_metric(
             conn,
@@ -331,6 +348,7 @@ def run_online_training_step(
                 "update_from_ts": update_from,
                 "update_to_ts": last_seen_ts,
             },
+            commit=False,
         )
         insert_or_update_model_registry(
             conn,
@@ -344,7 +362,13 @@ def run_online_training_step(
                 "metrics": artifact["metrics"],
                 "artifact_path": str(model_file.resolve()),
             },
+            commit=False,
         )
+        # State, metrics and registry succeed together. Publish only complete JSON.
+        # A publication failure leaves a version mismatch that triggers a retry.
+        conn.commit()
+        os.replace(staged_path, model_file)
+        staged_path = None
 
         return {
             "status": "trained",
@@ -359,4 +383,6 @@ def run_online_training_step(
             "new_rows": int(effective_new_rows),
         }
     finally:
+        if staged_path is not None:
+            pathlib.Path(staged_path).unlink(missing_ok=True)
         conn.close()

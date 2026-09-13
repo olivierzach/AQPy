@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import json
+import logging
+from aqpy.common.batch import finish_batch
 import os
 
-from aqpy.forecast.retention import run_retention
+from aqpy.forecast.retention import run_retention, run_history_retention
 from aqpy.forecast.specs import filter_specs, load_model_specs
 
 
@@ -38,7 +39,7 @@ def parse_args():
     parser.add_argument(
         "--raw-retention-days",
         type=int,
-        default=env_int("AQPY_RETENTION_DAYS_RAW", env_int("AQPY_RETENTION_DAYS", 180)),
+        default=env_int("AQPY_RETENTION_DAYS_RAW", env_int("AQPY_RAW_RETENTION_DAYS", env_int("AQPY_RETENTION_DAYS", 365))),
     )
     parser.add_argument(
         "--raw-safety-hours",
@@ -49,11 +50,11 @@ def parse_args():
         ),
     )
     parser.add_argument(
-        "--pred-retention-days",
+        "--pred-retention-days", "--prediction-days",
         type=int,
         default=env_int(
             "AQPY_RETENTION_DAYS_PREDICTIONS",
-            env_int("AQPY_RETENTION_DAYS", 180),
+            env_int("AQPY_PREDICTION_RETENTION_DAYS", env_int("AQPY_RETENTION_DAYS", 180)),
         ),
     )
     parser.add_argument(
@@ -61,6 +62,7 @@ def parse_args():
         type=int,
         default=env_int("AQPY_RETENTION_SAFETY_HOURS_PREDICTIONS", 0),
     )
+    parser.add_argument("--training-days", type=int, default=env_int("AQPY_TRAINING_RETENTION_DAYS", 365))
     args = parser.parse_args()
     if args.retention_days is not None:
         args.raw_retention_days = args.retention_days
@@ -113,6 +115,7 @@ def collect_retention_sources(
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     args = parse_args()
     specs = load_model_specs(args.spec_file)
     specs = filter_specs(
@@ -134,6 +137,8 @@ def main():
     results = []
     results.extend(skipped_sources)
     for source in unique_sources:
+        if source["table"] == "predictions":
+            continue  # History retention below handles predictions in bounded batches.
         try:
             res = run_retention(
                 database=source["database"],
@@ -156,6 +161,7 @@ def main():
                 }
             )
         except Exception as exc:
+            logging.exception("Job failed: %s.%s", source["database"], source["table"])
             results.append(
                 {
                     "database": source["database"],
@@ -168,8 +174,15 @@ def main():
                     "error": str(exc),
                 }
             )
-    print(json.dumps(results, indent=2, default=str))
+    for database in sorted({source["database"] for source in unique_sources}):
+        try:
+            result = run_history_retention(database, args.pred_retention_days, args.training_days)
+            results.append({"database": database, "scope": "history", "result": result})
+        except Exception as exc:
+            logging.exception("History retention failed: %s", database)
+            results.append({"database": database, "scope": "history", "status": "failed", "error": str(exc)})
+    return finish_batch(results)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

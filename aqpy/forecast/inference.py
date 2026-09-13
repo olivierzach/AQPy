@@ -1,6 +1,7 @@
 import datetime as dt
 import json
 import pathlib
+from aqpy.forecast.validation import require_finite
 
 from aqpy.forecast.adaptive_ar import recursive_predict as ar_recursive_predict
 from aqpy.common.db import connect_db
@@ -21,6 +22,7 @@ def run_inference(model_path, horizon_steps=12, database_override=None):
         raise FileNotFoundError(f"Model file not found: {model_file}")
 
     model = json.loads(model_file.read_text())
+    require_finite(model, "model")
     database = database_override or model["database"]
     table = validate_identifier(model["table"])
     time_col = validate_identifier(model["time_col"])
@@ -33,6 +35,7 @@ def run_inference(model_path, horizon_steps=12, database_override=None):
     try:
         ensure_predictions_table(conn)
         timestamps, values = fetch_recent_series(conn, table, time_col, target, n_rows)
+        require_finite(values, "source readings")
         if len(values) <= max_lag:
             raise RuntimeError(
                 f"Not enough source rows for inference. Need > {max_lag}, got {len(values)}."

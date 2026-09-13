@@ -89,6 +89,7 @@ def upsert_training_state(
     source_table,
     source_time_col,
     source_target_col,
+    commit=True,
 ):
     query = """
     INSERT INTO online_training_state (
@@ -127,10 +128,11 @@ def upsert_training_state(
                 source_target_col,
             ),
         )
-    conn.commit()
+    if commit:
+        conn.commit()
 
 
-def insert_training_metric(conn, metric_row):
+def insert_training_metric(conn, metric_row, commit=True):
     query = """
     INSERT INTO online_training_metrics (
         model_name,
@@ -161,7 +163,8 @@ def insert_training_metric(conn, metric_row):
     """
     with conn.cursor() as cur:
         cur.execute(query, metric_row)
-    conn.commit()
+    if commit:
+        conn.commit()
 
 
 def count_new_rows(conn, table, time_col, since_ts):
@@ -171,7 +174,7 @@ def count_new_rows(conn, table, time_col, since_ts):
         return int(cur.fetchone()[0])
 
 
-def insert_or_update_model_registry(conn, payload):
+def insert_or_update_model_registry(conn, payload, commit=True):
     query = """
     INSERT INTO model_registry (
         model_name,
@@ -202,7 +205,8 @@ def insert_or_update_model_registry(conn, payload):
                 payload["artifact_path"],
             ),
         )
-    conn.commit()
+    if commit:
+        conn.commit()
 
 
 def get_min_last_seen_ts(conn, model_name=None):

@@ -2,6 +2,8 @@
 
 import argparse
 import json
+import logging
+from aqpy.common.batch import finish_batch
 import pathlib
 
 from aqpy.forecast.backfill import run_backfill
@@ -29,6 +31,7 @@ def parse_args():
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     args = parse_args()
     specs = load_model_specs(args.spec_file)
     specs = filter_specs(
@@ -59,6 +62,7 @@ def main():
             )
             results.append({"model_name": spec["model_name"], "result": res})
         except Exception as exc:
+            logging.exception("Job failed: %s", spec["model_name"])
             results.append(
                 {
                     "model_name": spec["model_name"],
@@ -66,8 +70,8 @@ def main():
                     "error": str(exc),
                 }
             )
-    print(json.dumps(results, indent=2, default=str))
+    return finish_batch(results)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

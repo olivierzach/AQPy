@@ -19,7 +19,7 @@ def parse_args():
         default="",
         help="optional model name; leave empty to use all models watermark",
     )
-    parser.add_argument("--retention-days", type=int, default=14)
+    parser.add_argument("--retention-days", type=int, default=int(os.getenv("AQPY_RAW_RETENTION_DAYS", "365")))
     parser.add_argument("--safety-hours", type=int, default=12)
     return parser.parse_args()
 

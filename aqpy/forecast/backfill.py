@@ -15,6 +15,7 @@ from aqpy.forecast.repository import (
     validate_identifier,
 )
 from aqpy.forecast.rnn_lite import predict_batch as rnn_predict_batch
+from aqpy.forecast.validation import require_finite
 
 
 def _fetch_series_for_window(conn, table, time_col, target_col, start_ts, end_ts):
@@ -94,6 +95,7 @@ def run_backfill(
         return {"status": "skipped", "reason": f"model not found: {model_file}"}
 
     model = json.loads(model_file.read_text())
+    require_finite(model, "model")
     database = database_override or model["database"]
     table = validate_identifier(model["table"])
     time_col = validate_identifier(model["time_col"])
@@ -122,6 +124,7 @@ def run_backfill(
         if len(pred_times) == 0:
             return {"status": "skipped", "reason": "no eligible rows in backfill window"}
 
+        require_finite([float(v) for v in preds], "backfill predictions")
         deleted = 0
         if replace_existing:
             deleted = delete_predictions_window(
