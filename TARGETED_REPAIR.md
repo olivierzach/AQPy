@@ -42,3 +42,13 @@ planned coverage, causal fit/prediction calculations, physical/stability policy,
 actual alignment and scores. `repair_reference.py` supplies separate mathematical
 AR/NN/GRU fit and rollout implementations for this audit. Review time-series
 behavior and persistence comparisons as well as execution success.
+
+After the worker completes, run `run_targeted_repair.py finalize --directory DIR`
+then `run_targeted_repair.py validate --directory DIR`, with the same memory and
+CPU limits as the worker. Finalization exports bounded CSV evidence and scores
+previously unscored AR tails against the inventory's independently fingerprinted
+source tape. It never changes the original replay. Validation recalculates every
+new fit and recursive prediction using an independent numerical implementation,
+checks causal cutoffs, repair coverage, physical policy, original score aggregates,
+actual alignment, source fingerprints and exported rows. Any discrepancy returns
+a nonzero exit status. A successful worker exit alone is not validation.

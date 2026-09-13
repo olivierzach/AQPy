@@ -171,6 +171,8 @@ SYSTEMD_FILES=(
   "aqi-sensor-backup.timer"
   "aqi-replay@.service"
   "aqi-replay@.timer"
+  "aqi-repair@.service"
+  "aqi-repair@.timer"
 )
 
 for file in "${SYSTEMD_FILES[@]}"; do

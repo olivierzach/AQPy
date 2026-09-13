@@ -1,4 +1,5 @@
 import json
+import hashlib
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -26,6 +27,15 @@ def fixture(directory,family='adaptive_ar',future_change=False):
     conn.executemany('INSERT INTO forecasts VALUES (?,?,?,?,?,?,?,?)',[
         ('test',1,1800,1860,1,10,'v',1700),('test',2,1800,1920,2,-.5,'v',1700),
         ('test',3,2750,2700,1,10,'v',1700),('test',4,5100,5160,1,10,'v',5000)])
+    for source, in conn.execute('SELECT source FROM sources').fetchall():
+        digest=hashlib.sha256()
+        for row in conn.execute('SELECT ts,y FROM samples WHERE source=? ORDER BY seq',(source,)):
+            digest.update(json.dumps(list(row),sort_keys=True).encode())
+        conn.execute('UPDATE sources SET sha256=? WHERE source=?',(digest.hexdigest(),source))
+    digest=hashlib.sha256()
+    for row in conn.execute('SELECT * FROM forecasts ORDER BY target_ts,id'):
+        digest.update(json.dumps(tuple(row),sort_keys=True).encode())
+    conn.execute('UPDATE models SET sha256=?',(digest.hexdigest(),))
     conn.commit();conn.close();(root/'snapshot-complete').touch();analyze(root)
     repair.prepare(root)
 
