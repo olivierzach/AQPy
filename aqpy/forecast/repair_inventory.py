@@ -28,7 +28,7 @@ def open_inventory(directory):
     return conn
 
 
-def snapshot(directory, spec_file='configs/model_specs.json', end=None, max_mib=512):
+def snapshot(directory, spec_file='configs/model_specs.json', end=None, max_mib=512, forecast_start=None):
     """Resume at source/model boundaries. Original timestamps/outputs stay intact."""
     specs=load_model_specs(spec_file)
     root=Path(directory);root.mkdir(parents=True,exist_ok=True)
@@ -42,15 +42,19 @@ def snapshot(directory, spec_file='configs/model_specs.json', end=None, max_mib=
       CREATE TABLE IF NOT EXISTS forecasts(model TEXT,id INTEGER,generated REAL,target_ts REAL,horizon INTEGER,
         yhat REAL,version TEXT,trained_at REAL,PRIMARY KEY(model,id));
       CREATE INDEX IF NOT EXISTS forecast_time ON forecasts(model,target_ts);
+      CREATE TABLE IF NOT EXISTS forecast_sources(model TEXT,id INTEGER,source_table TEXT,
+        PRIMARY KEY(model,id));
     ''')
     old=local.execute("SELECT value FROM meta WHERE key='config'").fetchone()
-    config={'end':(end or dt.datetime.now(dt.timezone.utc)).isoformat(),'max_mib':max_mib,'specs':specs}
+    config={'end':(end or dt.datetime.now(dt.timezone.utc)).isoformat(),'max_mib':max_mib,'specs':specs,
+            'forecast_start':forecast_start.isoformat() if forecast_start else None}
     if old:
         config=json.loads(old[0])
         if config['specs']!=specs:raise ValueError('Inventory specifications changed')
     else:
         local.execute('INSERT INTO meta VALUES (?,?)',('config',json.dumps(config,sort_keys=True)));local.commit()
     end=dt.datetime.fromisoformat(config['end'])
+    forecast_start=dt.datetime.fromisoformat(config['forecast_start']) if config.get('forecast_start') else None
     local.execute(f"PRAGMA max_page_count={config['max_mib']*1024**2//4096}")
     def budget():
         if shutil.disk_usage(root).free<3*1024**3:raise RuntimeError('Less than 3 GiB free disk')
@@ -88,17 +92,22 @@ def snapshot(directory, spec_file='configs/model_specs.json', end=None, max_mib=
                     digest=hashlib.sha256();n=0
                     with local,pg.cursor(name='repair_forecasts') as cur:
                         cur.itersize=512
-                        cur.execute('''SELECT p.id,p.generated_at,p.predicted_for,p.horizon_step,p.yhat,p.model_version,r.trained_at
+                        cur.execute('''SELECT p.id,p.generated_at,p.predicted_for,p.horizon_step,p.yhat,p.model_version,r.trained_at,p.source_table
                           FROM predictions p LEFT JOIN model_registry r ON r.model_name=p.model_name AND r.model_version=p.model_version
                           WHERE p.target=%s AND p.model_name=%s AND p.predicted_for >= %s AND p.predicted_for<=%s
-                          ORDER BY p.predicted_for,p.id''',(spec['target'],name,first,end))
-                        for pid,generated,target,h,y,version,trained in cur:
+                            AND (%s IS NULL OR p.predicted_for > %s)
+                          ORDER BY p.predicted_for,p.id''',(spec['target'],name,first,end,forecast_start,forecast_start))
+                        source_digest=hashlib.sha256()
+                        for pid,generated,target,h,y,version,trained,source_table in cur:
                             if y is not None and not math.isfinite(y):y=str(y)
                             row=(name,pid,generated.timestamp(),target.timestamp(),h,y,version,trained.timestamp() if trained else None)
                             local.execute('INSERT INTO forecasts VALUES (?,?,?,?,?,?,?,?)',row)
+                            local.execute('INSERT INTO forecast_sources VALUES (?,?,?)',(name,pid,source_table))
+                            source_digest.update(json.dumps([name,pid,source_table],sort_keys=True).encode())
                             digest.update(json.dumps(row,sort_keys=True).encode());n+=1
                             if n%512==0:budget()
                         local.execute('INSERT INTO models VALUES (?,?,?,?)',(name,json.dumps(spec,sort_keys=True),n,digest.hexdigest()))
+                        local.execute('INSERT INTO meta VALUES (?,?)',('forecast_sources_sha256:'+name,source_digest.hexdigest()))
                     print(name,n,'forecasts frozen',flush=True)
             finally:pg.close()
         (root/'snapshot-complete').touch()

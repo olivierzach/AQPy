@@ -35,3 +35,10 @@ Source and forecast reads stream in 512-row batches; analysis handles one source
 and model at a time. For large runs use a low-priority systemd job with
 CPUQuota=25%, LimitAS=128M and idle I/O priority. Evidence is retained locally;
 archive completed runs explicitly when their disk budget is reached.
+
+Use `--forecast-start ISO_TIMESTAMP` to profile a later interval without copying
+forecast rows already covered by an earlier run. The boundary is exclusive on
+forecast target time; `--end` is inclusive. Raw input context still includes all
+available earlier readings, so a later repair never loses its warm-up history.
+New snapshots also fingerprint each original forecast's source-table definition;
+this distinguishes forecasts issued before and after a target-definition change.
