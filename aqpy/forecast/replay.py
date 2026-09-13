@@ -332,10 +332,28 @@ def status(run_dir):
 
 
 def export(run_dir):
+    import fcntl
+    with (Path(run_dir).parent/'.replay-worker.lock').open('w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return _export(run_dir)
+
+
+def validate(run_dir):
+    import fcntl
+    from aqpy.forecast.replay_validation import validate as audit
+    with (Path(run_dir).parent/'.replay-worker.lock').open('w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return audit(run_dir)
+
+
+def _export(run_dir):
     import csv
     run_dir = Path(run_dir)
     conn = open_run(run_dir/'replay.sqlite')
     try:
+        if not status(run_dir)['complete']:
+            raise RuntimeError('Complete the replay before exporting validated results')
+        (run_dir/'validation.json').unlink(missing_ok=True)
         # Streaming output; no full-history materialization.
         import io
         config = json.loads(conn.execute("SELECT value FROM meta WHERE key='config'").fetchone()[0])
@@ -371,6 +389,10 @@ def export(run_dir):
             records.append(record)
         (run_dir/'scores.json').write_text(dumps(records)+'\n')
         (run_dir/'status.json').write_text(dumps(status(run_dir))+'\n')
+        from aqpy.forecast.replay_validation import validate as audit
+        report = audit(run_dir, records)
+        if report['status'] != 'PASS':
+            raise RuntimeError('Replay validation failed: '+ '; '.join(report['failures']))
         return records
     finally:
         conn.close()

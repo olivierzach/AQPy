@@ -28,6 +28,76 @@ def predictions(directory):
 
 
 class ReplayTests(unittest.TestCase):
+    def test_multiple_targets_with_different_settings_validate_together(self):
+        with tempfile.TemporaryDirectory() as d:
+            init(d)
+            conn=replay.open_run(Path(d)/'replay.sqlite')
+            other=spec('nn_mlp');other.update(model_name='second_target',target='other',forecast_horizon_steps=7,min_new_rows=15)
+            replay.add_tape(conn,other,[(123+i*60,20+i%9) for i in range(110)],300)
+            conn.commit();conn.close()
+            replay.run(d,seconds=60,check_resources=False);replay.export(d)
+            report=replay.validate(d)
+            self.assertEqual(report['status'],'PASS')
+            self.assertEqual(len(report['models']),2)
+            for model in report['models']:
+                self.assertEqual(model['predictions'],model['issues']*model['specification']['forecast_horizon_steps'])
+
+    def test_validated_export_all_families_and_shifted_time_ranges(self):
+        for family in replay.FAMILIES:
+            with self.subTest(family=family), tempfile.TemporaryDirectory() as d:
+                init(d,family,[(1700000000+i*60,10+i%7) for i in range(99)])
+                replay.run(d,seconds=60,check_resources=False)
+                replay.export(d)
+                report = json.loads((Path(d)/'validation.json').read_text())
+                self.assertEqual(report['status'],'PASS')
+                self.assertEqual(report['models'][0]['source']['rows'],99)
+                self.assertGreater(report['models'][0]['unavailable_tail'],0)
+                self.assertEqual(set(report['files_sha256']),{'replay.sqlite','scores.json','predictions.csv'})
+
+    def test_validation_rejects_corrupted_data_and_records_failure(self):
+        mutations = [
+            'UPDATE samples SET y=y+1 WHERE seq=0',
+            'UPDATE predictions SET train_cutoff=issued_at+1',
+            'UPDATE predictions SET target_seq=target_seq+1',
+            'UPDATE predictions SET actual=12345 WHERE actual IS NOT NULL',
+            'UPDATE predictions SET baseline=baseline+1',
+            'DELETE FROM predictions WHERE horizon=2',
+            'UPDATE jobs SET fits=fits+1',
+        ]
+        for sql in mutations:
+            with self.subTest(sql=sql), tempfile.TemporaryDirectory() as d:
+                init(d);replay.run(d,seconds=60,check_resources=False);replay.export(d)
+                conn=replay.open_run(Path(d)/'replay.sqlite');conn.execute(sql);conn.commit();conn.close()
+                report=replay.validate(d)
+                self.assertEqual(report['status'],'FAIL')
+                self.assertTrue(report['failures'])
+                self.assertEqual(json.loads((Path(d)/'validation.json').read_text())['status'],'FAIL')
+
+    def test_validation_rejects_tampered_score_and_csv(self):
+        with tempfile.TemporaryDirectory() as d:
+            init(d);replay.run(d,seconds=60,check_resources=False);replay.export(d)
+            path=Path(d)/'scores.json';records=json.loads(path.read_text())
+            records[0]['mae']+=1;path.write_text(json.dumps(records))
+            self.assertEqual(replay.validate(d)['status'],'FAIL')
+            replay.export(d)
+            with (Path(d)/'predictions.csv').open('a') as f:f.write('extra,row\n')
+            self.assertEqual(replay.validate(d)['status'],'FAIL')
+
+    def test_incomplete_run_cannot_export_as_validated(self):
+        with tempfile.TemporaryDirectory() as d:
+            init(d);replay.run(d,max_events=1,check_resources=False)
+            with self.assertRaisesRegex(RuntimeError,'Complete the replay'):replay.export(d)
+            self.assertEqual(replay.validate(d)['status'],'FAIL')
+
+    def test_gaps_are_reported_and_skipped_ticks_checked(self):
+        with tempfile.TemporaryDirectory() as d:
+            init(d,rows=[(i*60+(86400*20 if i>=50 else 0),10+i%7) for i in range(100)])
+            replay.run(d,seconds=60,check_resources=False);replay.export(d)
+            report=replay.validate(d)
+            self.assertEqual(report['status'],'PASS')
+            self.assertGreater(report['models'][0]['largest_source_gap_seconds'],86400)
+            self.assertGreater(report['models'][0]['skipped_ticks_insufficient_history'],0)
+
     def test_future_values_do_not_change_earlier_predictions_for_any_family(self):
         for family in replay.FAMILIES:
             with self.subTest(family=family), tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:

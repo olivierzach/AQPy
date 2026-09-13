@@ -92,10 +92,40 @@ initialize a new run or use its original committed implementation.
 ```bash
 .venv/bin/python run_replay.py status --run-dir replays/ar-pilot
 .venv/bin/python run_replay.py export --run-dir replays/ar-pilot
+.venv/bin/python run_replay.py validate --run-dir replays/ar-pilot
 journalctl -u aqi-replay@ar-pilot -n 50 --no-pager
 ```
 
-Outputs are `replay.sqlite`, `predictions.csv`, `scores.json`, and `status.json`.
+Outputs are `replay.sqlite`, `predictions.csv`, `scores.json`, `status.json`, and
+`validation.json`. Export requires a completed run and automatically audits it;
+failed validation exits nonzero and records `FAIL` with a reason. The standalone
+`validate` command repeats the audit after export. Export/validation takes the
+same global lock as workers, preventing inconsistent results during writes.
+
+The audit streams source and output rows, verifies the frozen source hashes,
+reconstructs every expected issue time, refit cutoff and future observation index,
+checks every baseline/actual against the tape, rejects non-finite results,
+recalculates all MAE/RMSE/improvement summaries, and compares CSV rows to SQLite.
+The report includes model specifications, implementation hash, requested range,
+actual source coverage, largest timestamp gap, warm-up, skipped ticks, unscored
+tails and hashes of the result files. A PASS applies to those exact files; rerun
+validation after any change. Missing source history is reported rather than
+invented. It does not mean every requested timestamp had a sensor reading.
+
+Validation is generic across supported families and does not refit models. Causal
+future-change and exact-resume tests cover AR, NN and GRU; adding a family requires
+an explicit fit/predict adapter and those same tests. Runtime structural checks
+cannot prove the mathematical correctness of an arbitrary new adapter. The AR
+pilot additionally received an independent numerical refit audit.
+
+Any timezone-qualified start/end and any configured target in the supported
+families can be selected, subject to retained source coverage, warm-up and storage
+budgets. Unknown model/family selections fail rather than silently omitting them.
+The first observations inside the selected range supply warm-up; predictions do
+not begin at the requested start instant. A range outside retained history cannot
+recover deleted readings. Snapshot partitions preserve raw data but the current
+initializer reads PostgreSQL; archived-only inputs require an import adapter.
+
 Forecast rows contain issue time, training cutoff, future observation index,
 model forecast, persistence forecast (last observed reading), and revealed actual.
 SQLite/CSV times are Unix seconds UTC. Score summaries report MAE and RMSE by
