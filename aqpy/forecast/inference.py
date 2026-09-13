@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import pathlib
 from aqpy.forecast.validation import require_finite
+from aqpy.forecast.output_policy import correct_output, POLICY_VERSION
 
 from aqpy.forecast.adaptive_ar import recursive_predict as ar_recursive_predict
 from aqpy.common.db import connect_db
@@ -75,6 +76,7 @@ def run_inference(model_path, horizon_steps=12, database_override=None):
         cadence_seconds = int(model.get("cadence_seconds", 60))
         rows = []
         for step, pred in enumerate(preds, start=1):
+            served, reason = correct_output(target, pred, values[-1])
             pred_for = last_ts + dt.timedelta(seconds=cadence_seconds * step)
             rows.append(
                 (
@@ -85,7 +87,9 @@ def run_inference(model_path, horizon_steps=12, database_override=None):
                     model["model_name"],
                     model["model_version"],
                     step,
-                    pred,
+                    served,
+                    float(pred),
+                    POLICY_VERSION+':'+reason,
                 )
             )
 

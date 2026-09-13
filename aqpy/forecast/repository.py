@@ -78,7 +78,9 @@ def ensure_predictions_table(conn):
         model_name TEXT NOT NULL,
         model_version TEXT NOT NULL,
         horizon_step INTEGER NOT NULL CHECK (horizon_step > 0),
-        yhat DOUBLE PRECISION NOT NULL
+        yhat DOUBLE PRECISION NOT NULL,
+        raw_yhat DOUBLE PRECISION,
+        output_policy TEXT NOT NULL DEFAULT 'legacy_unchecked'
     );
 
     CREATE INDEX IF NOT EXISTS idx_predictions_lookup
@@ -124,9 +126,10 @@ def register_model(conn, payload):
 
 
 def insert_predictions(conn, payload_rows):
-    payload_rows = list(payload_rows)
+    payload_rows = [tuple(row)+(row[7],'unchanged') if len(row)==8 else tuple(row) for row in payload_rows]
     for row in payload_rows:
-        require_finite(row[-1], "prediction.yhat")
+        if len(row)!=10:raise ValueError('Expected forecast with raw value and output policy')
+        require_finite([row[7],row[8]], "prediction.yhat/raw_yhat")
     query = """
     INSERT INTO predictions (
         generated_at,
@@ -137,8 +140,8 @@ def insert_predictions(conn, payload_rows):
         model_name,
         model_version,
         horizon_step,
-        yhat
-    ) VALUES (now(), %s, %s, %s, %s, %s, %s, %s, %s)
+        yhat, raw_yhat, output_policy
+    ) VALUES (now(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     with conn.cursor() as cur:
         cur.executemany(query, payload_rows)

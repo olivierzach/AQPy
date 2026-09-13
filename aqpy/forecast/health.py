@@ -6,6 +6,7 @@ from pathlib import Path
 from aqpy.common.db import connect_db
 from aqpy.forecast.validation import require_finite
 from aqpy.forecast.retention import _validate_identifier as validate_identifier
+from aqpy.forecast.output_policy import in_domain
 
 
 def assess_artifact(spec):
@@ -21,13 +22,15 @@ def assess_artifact(spec):
     return artifact
 
 
-def check_recent_predictions(rows, now, max_age):
+def check_recent_predictions(rows, now, max_age, target=None):
     if not rows:
         raise ValueError('No recent predictions')
     require_finite([float(r[0]) for r in rows], 'recent forecasts')
     newest = max(r[1] for r in rows)
     if (now-newest).total_seconds() > max_age:
         raise ValueError('Forecast generation is stale')
+    if target is not None and any(not in_domain(target,float(r[0])) for r in rows if r[1]==newest):
+        raise ValueError('Latest forecast batch violates physical target bounds')
 
 
 def check_health(specs, sensor_age=300, forecast_age=1800, training_age=7200):
@@ -68,7 +71,7 @@ def check_health(specs, sensor_age=300, forecast_age=1800, training_age=7200):
                         cur.execute('''SELECT yhat,generated_at FROM predictions WHERE target=%s AND model_name=%s
                           AND predicted_for >= %s ORDER BY predicted_for DESC LIMIT 256''',
                           (target,name,now-dt.timedelta(seconds=forecast_age)))
-                        check_recent_predictions(cur.fetchall(),now,forecast_age)
+                        check_recent_predictions(cur.fetchall(),now,forecast_age,target)
                         cur.execute('''SELECT holdout_mae,holdout_rmse,baseline_mae,baseline_rmse,
                           mae_improvement_pct,rmse_improvement_pct FROM online_training_metrics
                           WHERE model_name=%s AND recorded_at >= %s ORDER BY recorded_at DESC''',
