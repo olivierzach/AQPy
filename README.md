@@ -284,12 +284,34 @@ Parameterization notes:
 * Maximum effective lookback is bounded by what exists in the database and these caps.
 
 ## Run One Retention Step (Training-Aware)
+The scheduled retention batch now keeps **365 days of raw sensor readings**,
+**180 days of forecasts**, and **365 days of training metrics and registry history**.
+Raw deletion still respects the slowest training watermark and its safety margin;
+current model registry entries are always retained. Existing raw data already
+deleted under the earlier 14-day policy cannot be recovered by extending retention.
+
+Override the scheduled policy in `.env` with `AQPY_RAW_RETENTION_DAYS`,
+`AQPY_PREDICTION_RETENTION_DAYS`, and `AQPY_TRAINING_RETENTION_DAYS` (positive integers).
+Upstream per-source settings `AQPY_RETENTION_DAYS_RAW` and
+`AQPY_RETENTION_DAYS_PREDICTIONS` take precedence over these aliases; the shared
+`AQPY_RETENTION_DAYS` is a fallback. Raw safety defaults to 24 hours and accepts
+`AQPY_RETENTION_SAFETY_HOURS_RAW` or `AQPY_RETENTION_SAFETY_HOURS`. Forecast
+retention uses `predicted_for` without a training watermark. Derived AQI views
+are skipped for raw deletion. CLI supports both `--raw-retention-days` /
+`--retention-days` and `--pred-retention-days` / `--prediction-days`.
+The batch also removes invalid NaN/infinite predictions, creates retention indexes
+concurrently, deletes history in 10,000-row transactions, and records pruning in
+`retention_runs` and the system journal. PostgreSQL can reuse deleted space after
+vacuum; filesystem usage need not immediately shrink.
+
+Run the complete policy now with `./scripts/run_edge_jobs_now.sh --retention-only`.
+The single-source command below only prunes raw readings:
 ```bash
 python3 run_data_retention.py \
   --database bme \
   --table pi \
   --time-col t \
-  --retention-days 180 \
+  --retention-days 365 \
   --safety-hours 24
 ```
 
@@ -298,24 +320,17 @@ Retention cutoff is:
 
 This prevents deleting records that have not been incorporated into online training.
 
-## Modular Retention Defaults (Batch)
-`run_data_retention_batch.py` supports separate policies:
-- Raw tables (`pi`): training-watermark aware
-- Predictions table (`predictions`): time-window retention without training watermark
+### Forecast failure handling
+Batch training, inference, backfill, and retention log per-job tracebacks, finish
+the remaining jobs in that batch, and exit nonzero on any failure so systemd reports
+the failure. Inspect `journalctl -u aqi-train-online -u aqi-forecast -u aqi-retention`.
 
-Defaults are now:
-- raw retention: `180` days, `24` safety hours
-- predictions retention: `180` days, `0` safety hours
-
-Configure in `.env`:
-```dotenv
-AQPY_RETENTION_DAYS=180
-AQPY_RETENTION_SAFETY_HOURS=24
-AQPY_RETENTION_DAYS_RAW=180
-AQPY_RETENTION_SAFETY_HOURS_RAW=24
-AQPY_RETENTION_DAYS_PREDICTIONS=180
-AQPY_RETENTION_SAFETY_HOURS_PREDICTIONS=0
-```
+Adaptive AR now uses a scaled, exponentially weighted ridge least-squares fit on
+each bounded training window. It does not replay the window into saved covariance
+state. Invalid artifacts are rebuilt even when the new-row threshold has not been
+met. All artifacts and prediction writes reject non-finite values. Model files are
+published atomically after state, metrics, and registry records commit together;
+a file/database version mismatch triggers retraining on the next pass.
 
 ## Run Timers On Pi
 ```bash
@@ -453,6 +468,20 @@ Backfill behavior:
 * idempotent by default: existing rows for the same model/version/window are replaced
 * selective filters (`--models`, `--databases`, `--targets`, `--families`) apply uniformly to train/forecast/backfill
 * `online_training_metrics` are written only for the filtered training specs (so metrics stay in sync with selected runs)
+
+Backfill writes retrospective predictions using the currently saved model. It does
+not recreate historical holdout MAE/RMSE records in `online_training_metrics`.
+Because the current model may have trained on the period being replayed, those
+predictions should not be presented as historical out-of-sample performance.
+For a valid historical score study, use a separate walk-forward evaluation: train
+only on data available before each cutoff, score later observations against a
+persistence baseline, and save the results separately from live training metrics.
+Only retained raw readings can be used; backfill cannot restore deleted readings.
+
+On a small Pi, avoid broad backfills until the loader is bounded: the current
+backfill implementation fetches all source rows up to the end time, even for a
+short requested window. Prefer collecting fresh score history from scheduled
+training while evaluating any retrospective study separately.
 
 ## Grafana Metrics Queries (Examples)
 Holdout MAE trend:
