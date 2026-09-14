@@ -1,0 +1,22 @@
+{
+  "run_id": "repair-all-20260913",
+  "evidence_sha256": "3a799745ebf3aa86de92e7b75001cff292d7a6458e455033aa97abe2fe6dae16",
+  "databases": [
+    {
+      "database": "bme",
+      "status": "PASS",
+      "rows": 811,
+      "unresolved": 37,
+      "rows_sha256": "87af1be35d69882dbe7d78283c9390d6552331c8e1384dcdafce5d333295d617",
+      "unresolved_sha256": "79d263b042278596c95ba3b7105e6c6ad8f6f218f9c6942e88ac0a2b73dcb02b"
+    },
+    {
+      "database": "pms",
+      "status": "PASS",
+      "rows": 205264,
+      "unresolved": 136,
+      "rows_sha256": "3e8e6580f180bb1821b7ff70ffce9d408da44bc447689745d847549383a14b59",
+      "unresolved_sha256": "27fdf69d2ca0945ce13106ccbe10dc8b29a3984ef125d8c0fa7548c5e3037ed0"
+    }
+  ]
+}

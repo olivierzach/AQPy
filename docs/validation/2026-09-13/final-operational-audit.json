@@ -1,0 +1,73 @@
+{
+  "checked_at": "2026-09-14T04:07:49.151168+00:00",
+  "repairs": [
+    {
+      "run": "repair-all-20260913",
+      "database": "bme",
+      "status": "PASS",
+      "rows": 811,
+      "unresolved": 37,
+      "rows_sha256": "87af1be35d69882dbe7d78283c9390d6552331c8e1384dcdafce5d333295d617",
+      "unresolved_sha256": "79d263b042278596c95ba3b7105e6c6ad8f6f218f9c6942e88ac0a2b73dcb02b"
+    },
+    {
+      "run": "repair-all-20260913",
+      "database": "pms",
+      "status": "PASS",
+      "rows": 205264,
+      "unresolved": 136,
+      "rows_sha256": "3e8e6580f180bb1821b7ff70ffce9d408da44bc447689745d847549383a14b59",
+      "unresolved_sha256": "27fdf69d2ca0945ce13106ccbe10dc8b29a3984ef125d8c0fa7548c5e3037ed0"
+    },
+    {
+      "run": "repair-delta-20260913",
+      "database": "bme",
+      "status": "PASS",
+      "rows": 22,
+      "unresolved": 0,
+      "rows_sha256": "af11ea24bac7ee94345f48592a1480cd154334e3340d9f4484b565e2ded4957c",
+      "unresolved_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "run": "repair-delta-20260913",
+      "database": "pms",
+      "status": "PASS",
+      "rows": 2604,
+      "unresolved": 0,
+      "rows_sha256": "65e9954c082b132680d26256901f8b1943280ad0eaf8fa40466e8d0d46fd230e",
+      "unresolved_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "live": [
+    {
+      "database": "bme",
+      "latest_sensor_times": [
+        "2026-09-13T21:08:44.232777-07:00",
+        "2026-09-13T21:07:43.174028-07:00"
+      ],
+      "recent_forecasts": 378,
+      "recent_models": 9,
+      "latest_issue": "2026-09-13T21:08:55.312891-07:00",
+      "latest_target": "2026-09-13T21:20:56.232777-07:00",
+      "visible_delta_rows": 22
+    },
+    {
+      "database": "pms",
+      "latest_sensor_times": [
+        "2026-09-13T21:08:44.211262-07:00",
+        "2026-09-13T21:07:43.152776-07:00"
+      ],
+      "recent_forecasts": 1638,
+      "recent_models": 39,
+      "latest_issue": "2026-09-13T21:08:58.872089-07:00",
+      "latest_target": "2026-09-13T21:20:56.211262-07:00",
+      "visible_delta_rows": 2604
+    }
+  ],
+  "health": {
+    "checked_at": "2026-09-14T04:09:37.982808+00:00",
+    "status": "ok",
+    "models_checked": 48,
+    "failures": []
+  }
+}

@@ -522,3 +522,9 @@ See [DATA_HEALTH.md](DATA_HEALTH.md) for the scheduled watchdog, failure handlin
 and bounded daily sensor backups. See [REPLAY.md](REPLAY.md) for isolated,
 resumable replay across AR, NN, and RNN models. Replay is opt-in and never runs
 as part of ordinary bring-up; live forecasts and training continue independently.
+
+## September 2026 repair completion
+
+See [the completion audit](docs/validation/2026-09-13/README.md) for verified main
+and delta publication, all-model dispositions, live data checks and deployed
+process memory limits.

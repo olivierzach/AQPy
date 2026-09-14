@@ -1,0 +1,1292 @@
+{
+  "generated_at": "2026-09-14T03:39:34.711347+00:00",
+  "runs": [
+    {
+      "run": "repair-all-20260913",
+      "end": "2026-09-13T08:00:00+00:00",
+      "forecast_start": null,
+      "auditor_sha256": "fe15e72e699f3d9b8bb1be3ede1880ae606fdeef32a28d4a188d1cba50a891b8",
+      "models": 48
+    },
+    {
+      "run": "repair-delta-20260913",
+      "end": "2026-09-13T18:00:00+00:00",
+      "forecast_start": "2026-09-13T08:00:00+00:00",
+      "auditor_sha256": "fe15e72e699f3d9b8bb1be3ede1880ae606fdeef32a28d4a188d1cba50a891b8",
+      "models": 48
+    }
+  ],
+  "models": [
+    {
+      "model": "aqpy_ar_aqi_pm",
+      "database": "pms",
+      "source_table": "pms_aqi_v2",
+      "target": "aqi_pm",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 1047,
+      "repaired_rows": 996,
+      "replaced_originals": 996,
+      "added_rows": 0,
+      "unresolved": 0,
+      "provenance": {
+        "targeted_reconstruction": 996
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 996,
+        "served_mae": 3.856155420488354,
+        "raw_mae": 3.856155420488354,
+        "persistence_mae": 4.167670682730924
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_ar_humidity",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "humidity",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26095,
+      "repaired_rows": 84,
+      "replaced_originals": 0,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 84,
+        "served_mae": 0.4019615859762138,
+        "raw_mae": 0.4019615859762138,
+        "persistence_mae": 0.36546868756308576
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_ar_p1",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p1",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26095,
+      "repaired_rows": 84,
+      "replaced_originals": 0,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 84,
+        "served_mae": 19.572831357187273,
+        "raw_mae": 19.572831357187273,
+        "persistence_mae": 24.904761904761905
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_ar_p2",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p2",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26096,
+      "repaired_rows": 84,
+      "replaced_originals": 0,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 84,
+        "served_mae": 18.63479347485206,
+        "raw_mae": 18.63479347485206,
+        "persistence_mae": 23.69047619047619
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_ar_p3",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p3",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26096,
+      "repaired_rows": 84,
+      "replaced_originals": 0,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 84,
+        "served_mae": 7.184885710276804,
+        "raw_mae": 7.184885710276804,
+        "persistence_mae": 12.05952380952381
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_ar_p4",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p4",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26096,
+      "repaired_rows": 88,
+      "replaced_originals": 4,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 88
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 88,
+        "served_mae": 1.4333975177329072,
+        "raw_mae": 1.4333975177329072,
+        "persistence_mae": 1.8977272727272727
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_ar_p5",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p5",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26096,
+      "repaired_rows": 1954,
+      "replaced_originals": 1870,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "corrected_original": 1870,
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 1954,
+        "served_mae": 0.06197932761132107,
+        "raw_mae": 0.06348784847789597,
+        "persistence_mae": 0.10030706243602866
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_ar_p6",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p6",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26096,
+      "repaired_rows": 2438,
+      "replaced_originals": 2354,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "corrected_original": 2353,
+        "targeted_reconstruction": 85
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 2438,
+        "served_mae": 0.05023974432574888,
+        "raw_mae": 0.05129397178276677,
+        "persistence_mae": 0.12059064807219032
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_ar_pm100_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm100_en",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 1047,
+      "repaired_rows": 25452,
+      "replaced_originals": 0,
+      "added_rows": 25452,
+      "unresolved": 0,
+      "provenance": {
+        "verified_ar_replay": 25452
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 25452,
+        "served_mae": 0.3118071971683976,
+        "raw_mae": 0.3118664432986635,
+        "persistence_mae": 0.35164230708785166
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_ar_pm100_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm100_st",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 1047,
+      "repaired_rows": 25452,
+      "replaced_originals": 0,
+      "added_rows": 25452,
+      "unresolved": 0,
+      "provenance": {
+        "verified_ar_replay": 25452
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 25452,
+        "served_mae": 0.3118071971683976,
+        "raw_mae": 0.3118664432986635,
+        "persistence_mae": 0.35164230708785166
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_ar_pm10_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm10_en",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 1047,
+      "repaired_rows": 25452,
+      "replaced_originals": 0,
+      "added_rows": 25452,
+      "unresolved": 0,
+      "provenance": {
+        "verified_ar_replay": 25452
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 25452,
+        "served_mae": 0.07369250548593877,
+        "raw_mae": 0.07406763157437096,
+        "persistence_mae": 0.08635863586358636
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_ar_pm10_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm10_st",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 1047,
+      "repaired_rows": 25452,
+      "replaced_originals": 0,
+      "added_rows": 25452,
+      "unresolved": 0,
+      "provenance": {
+        "verified_ar_replay": 25452
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 25452,
+        "served_mae": 0.07369250548593877,
+        "raw_mae": 0.07406763157437096,
+        "persistence_mae": 0.08635863586358636
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_ar_pm25_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm25_en",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 1047,
+      "repaired_rows": 25452,
+      "replaced_originals": 0,
+      "added_rows": 25452,
+      "unresolved": 0,
+      "provenance": {
+        "verified_ar_replay": 25452
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 25452,
+        "served_mae": 0.2864445525061207,
+        "raw_mae": 0.28673680309247346,
+        "persistence_mae": 0.3213107024988213
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_ar_pm25_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm25_st",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 1047,
+      "repaired_rows": 25452,
+      "replaced_originals": 0,
+      "added_rows": 25452,
+      "unresolved": 0,
+      "provenance": {
+        "verified_ar_replay": 25452
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 25452,
+        "served_mae": 0.2864445525061207,
+        "raw_mae": 0.28673680309247346,
+        "persistence_mae": 0.3213107024988213
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_ar_pressure",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "pressure",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26095,
+      "repaired_rows": 86,
+      "replaced_originals": 2,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 86
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 86,
+        "served_mae": 0.13345242246467204,
+        "raw_mae": 0.13345242246467204,
+        "persistence_mae": 0.07880931711956506
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_ar_temperature",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "temperature",
+      "model_type": "adaptive_ar",
+      "snapshot_rows": 26095,
+      "repaired_rows": 114,
+      "replaced_originals": 30,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 114
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 114,
+        "served_mae": 0.4576613296866417,
+        "raw_mae": 0.4576613296866417,
+        "persistence_mae": 0.396043561910628
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_aqi_pm",
+      "database": "pms",
+      "source_table": "pms_aqi_v2",
+      "target": "aqi_pm",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 1047,
+      "repaired_rows": 996,
+      "replaced_originals": 996,
+      "added_rows": 0,
+      "unresolved": 0,
+      "provenance": {
+        "targeted_reconstruction": 996
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 996,
+        "served_mae": 3.7951595275408017,
+        "raw_mae": 3.7951595275408017,
+        "persistence_mae": 4.167670682730924
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_nn_humidity",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "humidity",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 111,
+      "replaced_originals": 27,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 86,
+        "corrected_original": 25
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 111,
+        "served_mae": 1.48152998419839,
+        "raw_mae": 365.8489847437354,
+        "persistence_mae": 1.4995734148715985
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_p1",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p1",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 169,
+      "replaced_originals": 85,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 82,
+        "targeted_reconstruction": 87
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 169,
+        "served_mae": 40.58198523974097,
+        "raw_mae": 317.6461851610237,
+        "persistence_mae": 18.680473372781066
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_p2",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p2",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 85,
+      "replaced_originals": 1,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 85
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 85,
+        "served_mae": 17.436725786175355,
+        "raw_mae": 17.436725786175355,
+        "persistence_mae": 23.458823529411763
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_p3",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p3",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26096,
+      "repaired_rows": 88,
+      "replaced_originals": 4,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 87,
+        "corrected_original": 1
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 88,
+        "served_mae": 7.11983036479677,
+        "raw_mae": 7.139843074298397,
+        "persistence_mae": 11.897727272727273
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_p4",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p4",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26096,
+      "repaired_rows": 103,
+      "replaced_originals": 19,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 101,
+        "corrected_original": 2
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 103,
+        "served_mae": 1.3186732187847217,
+        "raw_mae": 1.3295899989790458,
+        "persistence_mae": 1.854368932038835
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_p5",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p5",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26096,
+      "repaired_rows": 85,
+      "replaced_originals": 1,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 85
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 85,
+        "served_mae": 0.10699241743282656,
+        "raw_mae": 0.10699241743282656,
+        "persistence_mae": 0.047058823529411764
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_p6",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p6",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26096,
+      "repaired_rows": 87,
+      "replaced_originals": 3,
+      "added_rows": 84,
+      "unresolved": 6,
+      "provenance": {
+        "corrected_original": 2,
+        "targeted_reconstruction": 85
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 87,
+        "served_mae": 0.08325846791286294,
+        "raw_mae": 0.08331565920802556,
+        "persistence_mae": 0.04597701149425287
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_pm100_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm100_en",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 5028,
+      "replaced_originals": 4944,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 90,
+        "corrected_original": 4938
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 5028,
+        "served_mae": 0.047003717481391254,
+        "raw_mae": 0.08455070665149114,
+        "persistence_mae": 0.053301511535401754
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_pm100_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm100_st",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 5562,
+      "replaced_originals": 5478,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 5476,
+        "targeted_reconstruction": 86
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 5562,
+        "served_mae": 0.03696607541275385,
+        "raw_mae": 23.274931732013854,
+        "persistence_mae": 0.040812657317511686
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_pm10_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm10_en",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 8637,
+      "replaced_originals": 8553,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 8551,
+        "targeted_reconstruction": 86
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 8637,
+        "served_mae": 0.009011664739295681,
+        "raw_mae": 30.391651604099565,
+        "persistence_mae": 0.009957161051290957
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_pm10_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm10_st",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 8393,
+      "replaced_originals": 8309,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 8296,
+        "targeted_reconstruction": 97
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 8393,
+        "served_mae": 0.013026502858039564,
+        "raw_mae": 0.0344281852123631,
+        "persistence_mae": 0.01429762897652806
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_pm25_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm25_en",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 7513,
+      "replaced_originals": 7429,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 7428,
+        "targeted_reconstruction": 85
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 7513,
+        "served_mae": 0.05817278964100892,
+        "raw_mae": 30.109231091293058,
+        "persistence_mae": 0.06854785039265274
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_pm25_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm25_st",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 5905,
+      "replaced_originals": 5821,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 5821,
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 5905,
+        "served_mae": 0.048770018234404994,
+        "raw_mae": 10.865245040952232,
+        "persistence_mae": 0.05368331922099916
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_pressure",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "pressure",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 86,
+      "replaced_originals": 2,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 86
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 86,
+        "served_mae": 0.08472729417735404,
+        "raw_mae": 0.08472729417735404,
+        "persistence_mae": 0.07804961259084796
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_nn_temperature",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "temperature",
+      "model_type": "nn_mlp",
+      "snapshot_rows": 26095,
+      "repaired_rows": 90,
+      "replaced_originals": 6,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 90
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 90,
+        "served_mae": 0.2843982821568976,
+        "raw_mae": 0.2843982821568976,
+        "persistence_mae": 0.48033418518572485
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_aqi_pm",
+      "database": "pms",
+      "source_table": "pms_aqi_v2",
+      "target": "aqi_pm",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 1047,
+      "repaired_rows": 996,
+      "replaced_originals": 996,
+      "added_rows": 0,
+      "unresolved": 0,
+      "provenance": {
+        "targeted_reconstruction": 996
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 996,
+        "served_mae": 4.061187729143994,
+        "raw_mae": 4.063574580827448,
+        "persistence_mae": 4.167670682730924
+      },
+      "disposition": "verified repair"
+    },
+    {
+      "model": "aqpy_rnn_humidity",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "humidity",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 84,
+      "replaced_originals": 0,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 84,
+        "served_mae": 0.43858952823718245,
+        "raw_mae": 0.43858952823718245,
+        "persistence_mae": 0.36546868756308576
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_p1",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p1",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 85,
+      "replaced_originals": 1,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 85
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 85,
+        "served_mae": 18.914077147857647,
+        "raw_mae": 18.914077147857647,
+        "persistence_mae": 24.63529411764706
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_p2",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p2",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26096,
+      "repaired_rows": 86,
+      "replaced_originals": 2,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 86
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 86,
+        "served_mae": 17.64750683696113,
+        "raw_mae": 17.64750683696113,
+        "persistence_mae": 23.232558139534884
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_p3",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p3",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26096,
+      "repaired_rows": 89,
+      "replaced_originals": 5,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 89
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 89,
+        "served_mae": 7.358102361471375,
+        "raw_mae": 7.358102361471375,
+        "persistence_mae": 11.617977528089888
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_p4",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p4",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26096,
+      "repaired_rows": 87,
+      "replaced_originals": 3,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 86,
+        "corrected_original": 1
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 87,
+        "served_mae": 1.4360897950853502,
+        "raw_mae": 1.4420584680053545,
+        "persistence_mae": 2.057471264367816
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_p5",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p5",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26096,
+      "repaired_rows": 86,
+      "replaced_originals": 2,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "targeted_reconstruction": 85,
+        "corrected_original": 1
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 86,
+        "served_mae": 0.09453543097767542,
+        "raw_mae": 0.09457833984505558,
+        "persistence_mae": 0.05813953488372093
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_p6",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "p6",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26096,
+      "repaired_rows": 85,
+      "replaced_originals": 1,
+      "added_rows": 84,
+      "unresolved": 5,
+      "provenance": {
+        "corrected_original": 1,
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 85,
+        "served_mae": 0.08280013814683503,
+        "raw_mae": 0.08286452163583347,
+        "persistence_mae": 0.058823529411764705
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_pm100_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm100_en",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 967,
+      "replaced_originals": 883,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 883,
+        "targeted_reconstruction": 84
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 967,
+        "served_mae": 0.18981743375172094,
+        "raw_mae": 0.23296208146543326,
+        "persistence_mae": 0.14167528438469493
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_pm100_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm100_st",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 963,
+      "replaced_originals": 879,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 878,
+        "targeted_reconstruction": 85
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 963,
+        "served_mae": 0.19214011078499788,
+        "raw_mae": 0.23594716134468607,
+        "persistence_mae": 0.1474558670820353
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_pm10_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm10_en",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 1077,
+      "replaced_originals": 993,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 992,
+        "targeted_reconstruction": 85
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 1077,
+        "served_mae": 0.13655688134364943,
+        "raw_mae": 0.215125878377827,
+        "persistence_mae": 0.08542246982358404
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_pm10_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm10_st",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 1093,
+      "replaced_originals": 1009,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 1007,
+        "targeted_reconstruction": 86
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 1093,
+        "served_mae": 0.13389906707478033,
+        "raw_mae": 0.21497210233948133,
+        "persistence_mae": 0.08234217749313816
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_pm25_en",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm25_en",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 558,
+      "replaced_originals": 474,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "corrected_original": 470,
+        "targeted_reconstruction": 88
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 558,
+        "served_mae": 0.49072659145344766,
+        "raw_mae": 0.56638821907154,
+        "persistence_mae": 0.27956989247311825
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_pm25_st",
+      "database": "pms",
+      "source_table": "pi",
+      "target": "pm25_st",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 605,
+      "replaced_originals": 521,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 94,
+        "corrected_original": 511
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 605,
+        "served_mae": 0.4621071502713776,
+        "raw_mae": 0.532465067835756,
+        "persistence_mae": 0.26776859504132233
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_pressure",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "pressure",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 86,
+      "replaced_originals": 2,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 86
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 86,
+        "served_mae": 0.07064163799647394,
+        "raw_mae": 0.07064163799647394,
+        "persistence_mae": 0.0784557889717803
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    },
+    {
+      "model": "aqpy_rnn_temperature",
+      "database": "bme",
+      "source_table": "pi",
+      "target": "temperature",
+      "model_type": "rnn_lite_gru",
+      "snapshot_rows": 26095,
+      "repaired_rows": 92,
+      "replaced_originals": 8,
+      "added_rows": 84,
+      "unresolved": 4,
+      "provenance": {
+        "targeted_reconstruction": 92
+      },
+      "runs": [
+        "repair-all-20260913",
+        "repair-delta-20260913"
+      ],
+      "metrics": {
+        "scored": 92,
+        "served_mae": 0.38505236411129434,
+        "raw_mae": 0.38505236411129434,
+        "persistence_mae": 0.47297108417014927
+      },
+      "disposition": "verified repair; unavailable source explicitly recorded"
+    }
+  ],
+  "definition": "Each repair run passed independent source, coverage, causal-fit, recursive-prediction, actual-alignment, policy, score, export and publication checks."
+}

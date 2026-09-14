@@ -1,0 +1,22 @@
+{
+  "run_id": "repair-delta-20260913",
+  "evidence_sha256": "80e1e7d073b0d9033fa79fe5ebea468042663c188cbebd29d8e791410b5ef3a0",
+  "databases": [
+    {
+      "database": "bme",
+      "status": "PASS",
+      "rows": 22,
+      "unresolved": 0,
+      "rows_sha256": "af11ea24bac7ee94345f48592a1480cd154334e3340d9f4484b565e2ded4957c",
+      "unresolved_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "database": "pms",
+      "status": "PASS",
+      "rows": 2604,
+      "unresolved": 0,
+      "rows_sha256": "65e9954c082b132680d26256901f8b1943280ad0eaf8fa40466e8d0d46fd230e",
+      "unresolved_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

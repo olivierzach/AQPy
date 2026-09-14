@@ -36,6 +36,28 @@ independent watchdog is effective immediately after being enabled.
 RNN training now fits only the training prefix before reporting holdout scores.
 Chronological replay scores provide a separate future-only evaluation.
 
+## Live process memory limits
+
+The installed ingestion, forecast, training and retention services use `LimitAS`
+ceilings of 128, 256, 384 and 128 MiB respectively. Numerical libraries run with
+`OPENBLAS_NUM_THREADS=1` and `OMP_NUM_THREADS=1`. These are per-process virtual
+address-space limits, not measured resident-memory usage or a whole-host budget.
+`MemoryMax` carries the same limits for hosts with memory cgroups; this Pi has no
+memory controller, so `LimitAS` is the effective protection. PostgreSQL and Grafana
+are separate processes and are not covered by these AQPy worker limits.
+
+If a worker exhausts its address space, it should fail visibly rather than keep
+allocating. The existing health timer checks failed services and stale output.
+Limits do not guarantee model accuracy, eliminate every memory failure, or bound
+manual invocations outside these units. Training currently fetches its configured
+history window before trimming to `max_train_rows`; the process limit still
+applies to that load. Avoid broad manual backfills as described in README.md.
+
+After changing these unit files, install them in `/etc/systemd/system/`, run
+`systemctl daemon-reload`, and restart ingestion. Scheduled batch jobs inherit
+new limits on their next start. Check completed training and forecast cycles plus
+`health/status.json` after deployment.
+
 ## Daily bounded sensor snapshots
 
 `aqi-sensor-backup.timer` runs at 00:15 UTC daily, catching missed runs after boot.

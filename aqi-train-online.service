@@ -7,7 +7,10 @@ Wants=network-online.target
 Type=oneshot
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
-Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+# RLIMIT_AS works on this Pi even without the memory cgroup controller.
+LimitAS=384M
+MemoryMax=384M
 ExecStart=/home/pi/AQPy/scripts/run_edge_jobs_now.sh --train-only
 User=pi
 Group=pi

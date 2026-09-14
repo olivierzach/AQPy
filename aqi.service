@@ -5,7 +5,10 @@ Description=run AQI sensor script
 Type=simple
 WorkingDirectory=/home/pi/AQPy
 EnvironmentFile=-/home/pi/AQPy/.env
-Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+# RLIMIT_AS works on this Pi even without the memory cgroup controller.
+LimitAS=128M
+MemoryMax=128M
 # use -u to make print statements unbuffered in logs
 ExecStart=/home/pi/AQPy/.venv/bin/python -u /home/pi/AQPy/read_sensors.py
 User=pi
