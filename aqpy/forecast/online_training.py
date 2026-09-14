@@ -36,6 +36,7 @@ from aqpy.forecast.online_repository import (
 )
 from aqpy.forecast.repository import ensure_registry_table, fetch_series, validate_identifier
 from aqpy.forecast.validation import require_finite
+from aqpy.forecast.stability import assess as assess_stability
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +92,7 @@ def run_online_training_step(
     max_train_rows=None,
     rnn_ridge=1e-3,
     random_seed=42,
+    forecast_horizon_steps=12,
 ):
     table = validate_identifier(table)
     time_col = validate_identifier(time_col)
@@ -130,6 +132,10 @@ def run_online_training_step(
             new_rows = -1
 
         timestamps, values = fetch_series(conn, table, time_col, target, history_hours)
+        if not len(values) or not timestamps:
+            return {"status": "skipped", "reason": "no source readings", "new_rows": new_rows}
+        if (dt.datetime.now(dt.timezone.utc) - timestamps[-1]).total_seconds() > 300:
+            return {"status": "skipped", "reason": "source readings older than five minutes", "new_rows": new_rows}
         if not np.isfinite(values).all():
             raise ValueError(f"{model_name}: source readings contain non-finite numbers")
         if max_train_rows is not None and max_train_rows > 0 and len(values) > max_train_rows:
@@ -250,6 +256,32 @@ def run_online_training_step(
             baseline_pred = _baseline_from_features(X_holdout, lags)
             model_payload = nn_model
 
+        # Gate the raw recursive trajectory before any state/metric/artifact writes.
+        holdout_start = (seq_len + len(X_train_seq) if model_type == 'rnn_lite_gru'
+                         else max(lags) + len(X_train))
+        def check_candidate(payload):
+            return assess_stability({**payload, 'model_type': model_type,
+                                     'target': target, 'lags': lags},
+                                    values, holdout_start, forecast_horizon_steps)
+        initialization = 'continued' if init is not None else 'fresh'
+        try:
+            stability = check_candidate(model_payload)
+        except ValueError as exc:
+            if model_type != 'nn_mlp' or init is None:
+                raise
+            logger.warning('%s: continued model failed stability; testing fresh fit: %s', model_name, exc)
+            rejected_reason = str(exc)
+            model_payload = train_mlp_regressor(
+                X_train=X_train, y_train=y_train, hidden_dim=hidden_dim,
+                learning_rate=learning_rate, epochs=epochs, batch_size=batch_size,
+                seed=random_seed)
+            stability = check_candidate(model_payload)
+            stability['rejected_continued_reason'] = rejected_reason
+            initialization = 'fresh_after_unstable_continuation'
+            holdout_pred = predict_batch(model_payload, X_holdout)
+            train_loss = model_payload.get('train_loss')
+        stability['initialization'] = initialization
+
         holdout_mae = mae(y_holdout, holdout_pred)
         holdout_rmse = rmse(y_holdout, holdout_pred)
         baseline_mae = mae(y_holdout, baseline_pred)
@@ -271,6 +303,7 @@ def run_online_training_step(
             "target_definition": 'instant_pm_index_epa2024_v2' if table=='pms_aqi_v2' else table,
             "lags": lags,
             "cadence_seconds": estimate_cadence_seconds(timestamps),
+            "stability": stability,
             "metrics": {
                 "holdout_mae": holdout_mae,
                 "holdout_rmse": holdout_rmse,

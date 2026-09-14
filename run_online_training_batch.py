@@ -64,6 +64,7 @@ def main():
                 max_train_rows=spec.get("max_train_rows"),
                 rnn_ridge=spec.get("rnn_ridge", 1e-3),
                 random_seed=spec.get("random_seed", 42),
+                forecast_horizon_steps=spec.get("forecast_horizon_steps", 12),
             )
             results.append({"model_name": spec["model_name"], "result": res})
         except Exception as exc:

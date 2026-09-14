@@ -94,3 +94,29 @@ Copy completed files/catalog to another device for independent protection. No
 remote backup destination is configured. No older raw-data backup was found in
 the local locations inspected during recovery; external/offline backups remain
 unverified. Model archives do not contain sensor readings.
+
+## Recursive stability and missing readings
+
+Online training checks each candidate's raw recursive forecast before writing
+training state, metrics, registry entries or a model artifact. It probes the
+configured horizon from the latest input window and up to eight evenly spaced
+holdout origins. Each probe uses only observations preceding that origin. It
+rejects non-finite outputs, physical/stability persistence fallback, and particle
+predictions below -1 (the watchdog's material-negative threshold). Small negative
+particle projections remain visible through output-policy labels.
+
+An unstable continued NN fit gets one fresh-initialization attempt using the same
+training prefix. If that passes, holdout metrics are recalculated for the accepted
+model. Otherwise training fails visibly and retains the existing model and state.
+This is a bounded admission check, not proof of stability on every future input.
+Artifacts record the gate version, horizon, raw range, sampled recursive MAE and
+persistence MAE, plus any rejected continuation reason. These sampled scores are
+separate from the existing one-step metrics and are not exhaustive forecast scores.
+
+Zero is a valid observation. All-zero windows still train and forecast; they are
+not automatically replaced with persistence or treated as missing data. Empty
+source windows or readings older than five minutes explicitly skip inference
+without inserting forecasts. Training likewise skips empty/stale fetched windows
+without replacing the model. Existing low-new-row skips still apply. Missing or
+stale sensors/forecasts continue to fail the watchdog, even if a batch exits
+successfully after skips. No synthetic readings are inserted.

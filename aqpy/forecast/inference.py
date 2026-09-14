@@ -36,6 +36,10 @@ def run_inference(model_path, horizon_steps=12, database_override=None):
     try:
         ensure_predictions_table(conn)
         timestamps, values = fetch_recent_series(conn, table, time_col, target, n_rows)
+        if not values or not timestamps:
+            return {"status": "skipped", "reason": "no source readings", "inserted": 0}
+        if (dt.datetime.now(dt.timezone.utc) - timestamps[-1]).total_seconds() > 300:
+            return {"status": "skipped", "reason": "source readings older than five minutes", "inserted": 0}
         require_finite(values, "source readings")
         if len(values) <= max_lag:
             raise RuntimeError(

@@ -1,0 +1,37 @@
+{
+  "status": "trained",
+  "model_version": "20260914T052623829047+0000",
+  "artifact_path": "models/pms_pm10_en_nn.json",
+  "holdout_mae": 0.5741752182001987,
+  "holdout_rmse": 0.7992027947261972,
+  "baseline_mae": 0.5160320641282565,
+  "baseline_rmse": 0.8162920220917643,
+  "mae_improvement_pct": -11.267352963844322,
+  "rmse_improvement_pct": 2.093518851473728,
+  "new_rows": 4,
+  "forecast": {
+    "inserted": 12,
+    "target": "pm10_en",
+    "model_name": "aqpy_nn_pm10_en",
+    "model_version": "20260914T052623829047+0000"
+  },
+  "stability": {
+    "version": "recursive_gate_v1",
+    "status": "PASS",
+    "horizon_steps": 12,
+    "origins": 9,
+    "scored_predictions": 85,
+    "raw_min": 0.0036550202510190165,
+    "raw_max": 1.5993017836432812,
+    "sampled_recursive_mae": 0.918585452027516,
+    "sampled_persistence_mae": 0.5294117647058824,
+    "rejected_continued_reason": "Recursive stability rejected origin=4856 step=11: -3.210074409198366 (nonnegative_projection_v1)",
+    "initialization": "fresh_after_unstable_continuation"
+  },
+  "health_after": {
+    "checked_at": "2026-09-14T05:32:58.321129+00:00",
+    "status": "ok",
+    "models_checked": 48,
+    "failures": []
+  }
+}
