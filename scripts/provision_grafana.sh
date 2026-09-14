@@ -147,7 +147,9 @@ echo "[grafana] Provisioned datasources and dashboards."
 if [[ -n "${PRIMARY_IPV4}" ]]; then
   echo "[grafana] Open overview: http://${PRIMARY_IPV4}:3000/d/aqpy-overview"
   echo "[grafana] Open raw sensors: http://${PRIMARY_IPV4}:3000/d/aqpy-raw"
+  echo "[grafana] Open repair history: http://${PRIMARY_IPV4}:3000/d/aqpy-repair-history"
 fi
 echo "[grafana] Open overview (hostname): http://${HOSTNAME_SHORT}.local:3000/d/aqpy-overview"
 echo "[grafana] Open raw sensors (hostname): http://${HOSTNAME_SHORT}.local:3000/d/aqpy-raw"
+echo "[grafana] Open repair history (hostname): http://${HOSTNAME_SHORT}.local:3000/d/aqpy-repair-history"
 echo "[grafana] Hostname: ${HOSTNAME_FQDN}"

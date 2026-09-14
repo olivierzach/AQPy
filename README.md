@@ -45,6 +45,7 @@ This repo can provision Grafana automatically with:
 * datasource `AQPy BME` (database `bme`)
 * datasource `AQPy PMS` (database `pms`)
 * dashboard `AQPy Edge Sensors + Forecasts` (`uid=aqpy-overview`)
+* dashboard `AQPy Verified Repair History` (`uid=aqpy-repair-history`)
 
 From Pi:
 ```bash
@@ -60,6 +61,11 @@ http://<pi-ip>:3000/d/aqpy-overview
 Raw sensors dashboard:
 ```text
 http://<pi-ip>:3000/d/aqpy-raw
+```
+
+Verified historical repairs and their provenance/quality:
+```text
+http://<pi-ip>:3000/d/aqpy-repair-history
 ```
 
 Notes:
