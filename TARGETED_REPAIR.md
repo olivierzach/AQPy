@@ -73,3 +73,8 @@ refuses further work at the ceilings; it does not silently delete evidence.
 The row and run limits bound growth during import as well as between runs.
 Corrected/reconstructed error scores must be distinguished from original model
 performance; output fallback is not evidence that the raw model became better.
+
+After every interval has passed validation and publication, generate the required
+model-by-model disposition with `run_repair_report.py --run DIR [--run DIR ...]
+--output-directory REPORT_DIR`. It refuses unaudited or unpublished runs and keeps
+served, raw-model, and last-observation persistence error separate.
