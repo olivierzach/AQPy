@@ -26,7 +26,7 @@ def build(run_directories,output_directory):
         try:
             config=json.loads(conn.execute("SELECT value FROM meta WHERE key='config'").fetchone()[0])
             run={'run':directory.name,'end':config['end'],'forecast_start':config.get('forecast_start'),
-                 'validation_sha256':validation['auditor_sha256'],'models':len(validation['models'])}
+                 'auditor_sha256':validation['auditor_sha256'],'models':len(validation['models'])}
             runs.append(run)
             audited={m['model']:m for m in validation['models']}
             for model in conn.execute('SELECT * FROM repair_models ORDER BY model'):
