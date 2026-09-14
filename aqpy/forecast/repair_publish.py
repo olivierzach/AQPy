@@ -111,6 +111,14 @@ def _publish(root,max_rows):
                         JOIN history_repair.runs r ON r.run_id=b.run_id
                         WHERE a.run_id=%s AND r.published_at IS NOT NULL''',(run_id,))
                     if cur.fetchone()[0]:raise ValueError('Original rows overlap another published run')
+                    cur.execute('''SELECT count(*) FROM history_repair.predictions a
+                        JOIN history_repair.predictions b ON a.model_name=b.model_name
+                          AND a.generated_at=b.generated_at AND a.horizon_step=b.horizon_step
+                          AND a.target=b.target AND a.run_id<>b.run_id
+                        JOIN history_repair.runs r ON r.run_id=b.run_id
+                        WHERE a.run_id=%s AND a.original_id IS NULL AND b.original_id IS NULL
+                          AND r.published_at IS NOT NULL''',(run_id,))
+                    if cur.fetchone()[0]:raise ValueError('Reconstructed rows overlap another published run')
                     cur.execute('UPDATE history_repair.runs SET published_at=coalesce(published_at,now()) WHERE run_id=%s',(run_id,))
                 pg.commit()
                 report['databases'].append({'database':database,'status':'PASS','rows':count,'unresolved':unresolved_count,

@@ -45,6 +45,16 @@ class PublishIntegrationTests(unittest.TestCase):
                     cur.execute('SELECT provenance,yhat FROM predictions_repaired WHERE original_id=5')
                     self.assertEqual(cur.fetchone(),('original_unverified_missing_source',10.))
                     cur.execute('SELECT count(*) FROM predictions_repaired WHERE original_id=6');self.assertEqual(cur.fetchone()[0],0)
+                # A separate valid run covering the same original IDs is staged
+                # but cannot become visible over the already published run.
+                with tempfile.TemporaryDirectory() as other:
+                    fixture(other,missing_source=True);run(other,60,check_resources=False);finalize(other)
+                    self.assertEqual(audit(other)['status'],'PASS')
+                    with self.assertRaises(ValueError):publish(other)
+                    with pg.cursor() as cur:
+                        cur.execute('SELECT published_at FROM history_repair.runs WHERE run_id=%s',(Path(other).name,))
+                        self.assertIsNone(cur.fetchone()[0])
+                with pg.cursor() as cur:
                     # A corrupted staged import must never become visible.
                     cur.execute('UPDATE history_repair.runs SET published_at=NULL')
                     cur.execute('UPDATE history_repair.predictions SET yhat=yhat+1')

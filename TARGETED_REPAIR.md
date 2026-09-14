@@ -60,6 +60,8 @@ checks every database row against the audited local evidence, and only then mark
 that database's run visible. Re-running is idempotent. `predictions_repaired`
 combines originals with explicit corrections/reconstructions; original tables
 remain intact. Unrecoverable rows are listed in `history_repair.unresolved`.
+Publication rejects a new run if it would replace the same original ID or add the
+same model/issue/horizon reconstruction as an already published run.
 Demonstrably invalid unresolved rows are excluded from the combined view. Plausible
 originals whose pre-issue source has expired remain visible and are explicitly
 labeled `original_unverified_missing_source`; inability to revalidate an old
