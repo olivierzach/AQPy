@@ -10,7 +10,7 @@ from aqpy.forecast.repair_inventory import analyze,open_inventory
 from aqpy.forecast import targeted_repair as repair
 
 
-def fixture(directory,family='adaptive_ar',future_change=False,prepare=True):
+def fixture(directory,family='adaptive_ar',future_change=False,prepare=True,missing_source=False):
     root=Path(directory);conn=open_inventory(root)
     conn.executescript('''CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT);
       CREATE TABLE sources(source TEXT PRIMARY KEY,rows INTEGER,first REAL,last REAL,sha256 TEXT);
@@ -27,6 +27,9 @@ def fixture(directory,family='adaptive_ar',future_change=False,prepare=True):
     conn.executemany('INSERT INTO forecasts VALUES (?,?,?,?,?,?,?,?)',[
         ('test',1,1800,1860,1,10,'v',1700),('test',2,1800,1920,2,-.5,'v',1700),
         ('test',3,2750,2700,1,10,'v',1700),('test',4,5100,5160,1,10,'v',5000)])
+    if missing_source:
+        conn.executemany('INSERT INTO forecasts VALUES (?,?,?,?,?,?,?,?)',[
+            ('test',5,-60,0,1,10,'v',-120),('test',6,-60,60,2,-.1,'v',-120)])
     for source, in conn.execute('SELECT source FROM sources').fetchall():
         digest=hashlib.sha256()
         for row in conn.execute('SELECT ts,y FROM samples WHERE source=? ORDER BY seq',(source,)):
@@ -35,7 +38,7 @@ def fixture(directory,family='adaptive_ar',future_change=False,prepare=True):
     digest=hashlib.sha256()
     for row in conn.execute('SELECT * FROM forecasts ORDER BY target_ts,id'):
         digest.update(json.dumps(tuple(row),sort_keys=True).encode())
-    conn.execute('UPDATE models SET sha256=?',(digest.hexdigest(),))
+    conn.execute('UPDATE models SET sha256=?,rows=(SELECT count(*) FROM forecasts)',(digest.hexdigest(),))
     conn.commit();conn.close();(root/'snapshot-complete').touch();analyze(root)
     if prepare:repair.prepare(root)
 

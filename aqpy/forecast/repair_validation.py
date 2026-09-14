@@ -169,6 +169,12 @@ def _audit(root):
                 while issue<b-300:
                     expected_gap_keys.update(f'gap:{issue}:{h}' for h in range(1,spec.get('forecast_horizon_steps',12)+1));issue+=600
             check({k for k in task_keys if k.startswith('gap:')}==expected_gap_keys,'Gap plan coverage mismatch')
+            for unresolved in conn.execute('SELECT * FROM unresolved WHERE model=?',(name,)):
+                if unresolved['key'] in task_keys:continue
+                check(unresolved['key'].startswith('original:'),'Unplanned unresolved record')
+                original=conn.execute('SELECT generated FROM forecasts WHERE model=? AND id=?',(name,int(unresolved['key'].split(':')[1]))).fetchone()
+                check(original is not None and bisect.bisect_right(times,original[0])==0
+                      and unresolved['reason']=='no source before issuance','Incorrect unresolved original')
             for output in conn.execute('SELECT * FROM repaired WHERE model=? ORDER BY issued,horizon',(name,)):
                 seq=bisect.bisect_right(times,output['issued'])-1;check(seq>=0,'Output has no past source')
                 history=values[max(0,seq-49):seq+1];raw=output['raw_yhat']

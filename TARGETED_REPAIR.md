@@ -59,8 +59,11 @@ independent PASS audit and unchanged file hashes. It imports in batches of 256,
 checks every database row against the audited local evidence, and only then marks
 that database's run visible. Re-running is idempotent. `predictions_repaired`
 combines originals with explicit corrections/reconstructions; original tables
-remain intact. Unrecoverable rows are listed in `history_repair.unresolved` and
-excluded from the combined view. Original rows outside the audited interval are
+remain intact. Unrecoverable rows are listed in `history_repair.unresolved`.
+Demonstrably invalid unresolved rows are excluded from the combined view. Plausible
+originals whose pre-issue source has expired remain visible and are explicitly
+labeled `original_unverified_missing_source`; inability to revalidate an old
+forecast is not itself evidence that it was wrong. Original rows outside the audited interval are
 still labeled `original`, not certified as verified. Publication across the two
 databases is resumable, not a distributed atomic transaction.
 

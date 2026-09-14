@@ -30,6 +30,7 @@ class RepairValidationTests(unittest.TestCase):
             "DELETE FROM repaired WHERE key='original:2'",
             "UPDATE repair_fits SET artifact='{}'",
             'UPDATE repair_tasks SET complete=0',
+            "INSERT INTO unresolved VALUES ('test','original:999','no source before issuance')",
         ]
         for sql in mutations:
             with self.subTest(sql=sql),tempfile.TemporaryDirectory() as d:

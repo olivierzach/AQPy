@@ -50,14 +50,26 @@ CREATE OR REPLACE VIEW public.predictions_repaired AS
 SELECT p.id AS original_id,p.generated_at,p.predicted_for,p.source_database,p.source_table,
        p.target,p.model_name,p.model_version,p.horizon_step,p.yhat,
        coalesce(p.raw_yhat,p.yhat) AS raw_yhat,p.output_policy,
-       'original'::text AS provenance,NULL::text AS repair_run,
+       CASE WHEN EXISTS (
+           SELECT 1 FROM history_repair.unresolved u JOIN history_repair.runs r USING(run_id)
+           WHERE u.original_id=p.id AND r.published_at IS NOT NULL
+       ) THEN 'original_unverified_missing_source' ELSE 'original' END AS provenance,
+       NULL::text AS repair_run,
        NULL::double precision AS actual,NULL::timestamptz AS actual_at,
        NULL::double precision AS baseline,NULL::timestamptz AS train_cutoff
 FROM public.predictions p
 WHERE NOT EXISTS (SELECT 1 FROM history_repair.predictions h JOIN history_repair.runs r USING(run_id)
                   WHERE h.original_id=p.id AND r.published_at IS NOT NULL)
   AND NOT EXISTS (SELECT 1 FROM history_repair.unresolved h JOIN history_repair.runs r USING(run_id)
-                  WHERE h.original_id=p.id AND r.published_at IS NOT NULL)
+                  WHERE h.original_id=p.id AND r.published_at IS NOT NULL
+                    AND (h.reason <> 'no source before issuance'
+                         OR NOT (p.yhat > '-Infinity'::float8 AND p.yhat < 'Infinity'::float8)
+                         OR p.generated_at >= p.predicted_for
+                         OR NOT EXISTS (SELECT 1 FROM public.model_registry m WHERE m.model_name=p.model_name
+                                        AND m.model_version=p.model_version AND m.trained_at<=p.generated_at)
+                         OR (p.target ~ '^(pm(10|25|100)_(st|en)|p[1-6]|pressure)$' AND p.yhat < 0)
+                         OR (p.target='humidity' AND (p.yhat<0 OR p.yhat>100))
+                         OR (p.target='aqi_pm' AND (p.yhat<0 OR p.yhat>500 OR p.source_table<>'pms_aqi_v2'))))
 UNION ALL
 SELECT h.original_id,h.generated_at,h.predicted_for,h.source_database,h.source_table,
        h.target,h.model_name,('repair:'||h.run_id),h.horizon_step,h.yhat,h.raw_yhat,h.output_policy,
