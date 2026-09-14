@@ -29,8 +29,18 @@ def check_recent_predictions(rows, now, max_age, target=None):
     newest = max(r[1] for r in rows)
     if (now-newest).total_seconds() > max_age:
         raise ValueError('Forecast generation is stale')
-    if target is not None and any(not in_domain(target,float(r[0])) for r in rows if r[1]==newest):
+    latest = [r for r in rows if r[1] == newest]
+    if target is not None and any(not in_domain(target,float(r[0])) for r in latest):
         raise ValueError('Latest forecast batch violates physical target bounds')
+    if latest and len(latest[0]) >= 4:
+        raw = [float(r[2] if r[2] is not None else r[0]) for r in latest]
+        require_finite(raw, 'latest raw forecasts')
+        severe = ('physical_persistence_v1', 'causal_stability_persistence_v1')
+        if any(any(reason in (r[3] or '') for reason in severe) for r in latest):
+            raise ValueError('Latest raw model batch required stability fallback')
+        if any('nonnegative_projection_v1' in (r[3] or '') and value < -1.0
+               for r,value in zip(latest,raw)):
+            raise ValueError('Latest raw particle forecast is materially negative')
 
 
 def check_health(specs, sensor_age=300, forecast_age=1800, training_age=7200):
@@ -68,7 +78,7 @@ def check_health(specs, sensor_age=300, forecast_age=1800, training_age=7200):
                         state = cur.fetchone()
                         if not state or (now-state[0]).total_seconds() > training_age:
                             raise ValueError('Training state missing or stale')
-                        cur.execute('''SELECT yhat,generated_at FROM predictions WHERE target=%s AND model_name=%s
+                        cur.execute('''SELECT yhat,generated_at,raw_yhat,output_policy FROM predictions WHERE target=%s AND model_name=%s
                           AND predicted_for >= %s ORDER BY predicted_for DESC LIMIT 256''',
                           (target,name,now-dt.timedelta(seconds=forecast_age)))
                         check_recent_predictions(cur.fetchall(),now,forecast_age,target)

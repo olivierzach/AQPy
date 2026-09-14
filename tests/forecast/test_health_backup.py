@@ -21,6 +21,18 @@ class HealthTests(unittest.TestCase):
             with self.assertRaises(ValueError):check_recent_predictions(rows,now,1800)
         check_recent_predictions([(0.,now)],now,1800)
 
+    def test_latest_raw_model_instability_fails_even_when_served_value_is_safe(self):
+        now=dt.datetime.now(dt.timezone.utc)
+        check_recent_predictions([(0.,now,-.01,'physical_output_v2:nonnegative_projection_v1')],now,1800,'p1')
+        for row in [
+            (50.,now,160.,'physical_output_v2:physical_persistence_v1'),
+            (1.,now,1000.,'physical_output_v2:causal_stability_persistence_v1'),
+            (0.,now,-2.,'physical_output_v2:nonnegative_projection_v1'),
+            (0.,now,float('nan'),'physical_output_v2:unchanged'),
+        ]:
+            with self.subTest(row=row),self.assertRaises(ValueError):
+                check_recent_predictions([row],now,1800,'p1')
+
     def test_corrupt_model_fails(self):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/'model.json';p.write_text('{"theta":[NaN]}')
