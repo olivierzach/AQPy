@@ -4,11 +4,19 @@ import unittest
 from tests.forecast.test_targeted_repair import fixture
 from aqpy.forecast.targeted_repair import run
 from aqpy.forecast.repair_inventory import open_inventory
-from aqpy.forecast.repair_validation import audit
+from aqpy.forecast.repair_validation import audit, reference_policy
 from aqpy.forecast.repair_export import finalize
 
 
 class RepairValidationTests(unittest.TestCase):
+    def test_reference_aqi_policy_keeps_large_domain_errors_distinct(self):
+        self.assertEqual(reference_policy('aqi_pm', -.5, [25.] * 50),
+                         (0., 'aqi_zero_projection_v1'))
+        for raw in (-.500001, 500.01):
+            with self.subTest(raw=raw):
+                self.assertEqual(reference_policy('aqi_pm', raw, [25.] * 50),
+                                 (25., 'physical_persistence_v1'))
+
     def test_independent_audit_all_families(self):
         for family in ('adaptive_ar','nn_mlp','rnn_lite_gru'):
             with self.subTest(family=family),tempfile.TemporaryDirectory() as d:

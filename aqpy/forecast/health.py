@@ -6,7 +6,7 @@ from pathlib import Path
 from aqpy.common.db import connect_db
 from aqpy.forecast.validation import require_finite
 from aqpy.forecast.retention import _validate_identifier as validate_identifier
-from aqpy.forecast.output_policy import in_domain
+from aqpy.forecast.output_policy import AQI_ZERO_TOLERANCE, in_domain
 
 
 def assess_artifact(spec):
@@ -35,6 +35,11 @@ def check_recent_predictions(rows, now, max_age, target=None):
     if latest and len(latest[0]) >= 4:
         raw = [float(r[2] if r[2] is not None else r[0]) for r in latest]
         require_finite(raw, 'latest raw forecasts')
+        if target == 'aqi_pm' and any(
+            not in_domain(target, value) and not -AQI_ZERO_TOLERANCE <= value < 0
+            for value in raw
+        ):
+            raise ValueError('Latest raw AQI forecast exceeds boundary tolerance')
         severe = ('physical_persistence_v1', 'causal_stability_persistence_v1')
         if any(any(reason in (r[3] or '') for reason in severe) for r in latest):
             raise ValueError('Latest raw model batch required stability fallback')

@@ -33,6 +33,14 @@ class HealthTests(unittest.TestCase):
             with self.subTest(row=row),self.assertRaises(ValueError):
                 check_recent_predictions([row],now,1800,'p1')
 
+    def test_aqi_raw_boundary_is_enforced_even_when_served_value_is_zero(self):
+        now = dt.datetime.now(dt.timezone.utc)
+        policy = 'physical_output_v3:aqi_zero_projection_v1'
+        check_recent_predictions([(0., now, -.5, policy)], now, 1800, 'aqi_pm')
+        for raw in (-.500001, 500.01):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                check_recent_predictions([(0., now, raw, policy)], now, 1800, 'aqi_pm')
+
     def test_corrupt_model_fails(self):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/'model.json';p.write_text('{"theta":[NaN]}')

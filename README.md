@@ -161,6 +161,15 @@ It is not official daily AQI or NowCast; see [the versioned definition](PARTICLE
   - PM10 truncated to 1 `ug/m3`
 - AQI result is `max(subindex_pm25, subindex_pm10)` in range `[0, 500]`
 
+Forecast boundary handling (`physical_output_v3`):
+- An `aqi_pm` forecast in `[-0.5, 0)` is served as zero with reason
+  `aqi_zero_projection_v1`, allowing half-point undershoot of the integer index.
+- More negative AQI forecasts, values above 500, nonfinite outputs, and unstable
+  recursive trajectories still fail the training or health checks.
+- Training validation, live inference, and the independent repair audit use this
+  boundary rule. Raw forecasts remain in `raw_yhat`, and validation errors remain
+  scored on raw outputs; neither sensor readings nor historical rows are changed.
+
 Implementation choice:
 - The index is derived in `pms_aqi_v2` with a `pms_aqi` compatibility view, not stored back into raw `pi`.
 - This is non-destructive and automatically backfills all historical rows.

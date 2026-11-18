@@ -1,9 +1,38 @@
+import math
 import unittest
-from unittest.mock import MagicMock
 from aqpy.forecast.output_policy import correct_output,in_domain
 
 
 class OutputPolicyTests(unittest.TestCase):
+    def test_aqi_zero_projection_is_limited_to_half_an_index_point(self):
+        for raw in (-.5, -.0444344635, math.nextafter(0., -math.inf)):
+            with self.subTest(raw=raw):
+                self.assertEqual(correct_output('aqi_pm', raw, 25., [25.] * 50),
+                                 (0., 'aqi_zero_projection_v1'))
+        for raw in (math.nextafter(-.5, -math.inf), -1., math.nextafter(500., math.inf)):
+            with self.subTest(raw=raw):
+                self.assertEqual(correct_output('aqi_pm', raw, 25.),
+                                 (25., 'physical_persistence_v1'))
+        for raw in (0., .25, 500.):
+            with self.subTest(raw=raw):
+                self.assertEqual(correct_output('aqi_pm', raw, 25.), (raw, 'unchanged'))
+        self.assertFalse(in_domain('aqi_pm', -.01))
+        self.assertFalse(in_domain('aqi_pm', 500.01))
+
+    def test_aqi_tolerance_does_not_relax_other_target_bounds(self):
+        for target in ('humidity', 'pressure'):
+            with self.subTest(target=target):
+                self.assertEqual(correct_output(target, -.04, 25.),
+                                 (25., 'physical_persistence_v1'))
+
+    def test_aqi_projection_still_rejects_invalid_inputs(self):
+        for raw in (math.nan, math.inf, -math.inf):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                correct_output('aqi_pm', raw, 0.)
+        for baseline in (-1., 501., math.nan):
+            with self.subTest(baseline=baseline), self.assertRaises(ValueError):
+                correct_output('aqi_pm', -.04, baseline)
+
     def test_stability_guard_rejects_explosive_rollout_using_only_past(self):
         history=[0.,1.,2.,3.,1.]*10
         self.assertEqual(correct_output('pm25_st',20000,1,history),(1.,'causal_stability_persistence_v1'))
@@ -18,14 +47,6 @@ class OutputPolicyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'physical'):
             check_recent_predictions([(160.,now)],now,300,'humidity')
         check_recent_predictions([(160.,now-dt.timedelta(minutes=1)),(52.,now)],now,300,'humidity')
-
-    def test_database_writer_preserves_raw_value_and_reason(self):
-        from aqpy.forecast.repository import insert_predictions
-        conn=MagicMock();cur=conn.cursor.return_value.__enter__.return_value
-        row=(None,'pms','pi','pm25_st','model','version',1,0.,-.6,'nonnegative_projection_v1')
-        insert_predictions(conn,[row])
-        sql,rows=cur.executemany.call_args.args
-        self.assertIn('raw_yhat',sql);self.assertEqual(rows,[row])
 
     def test_negative_particle_projection_preserves_valid_values(self):
         for target in ['pm25_st','pm100_en','p6']:

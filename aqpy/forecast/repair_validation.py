@@ -18,6 +18,7 @@ def reference_policy(target,raw,history):
     if not math.isfinite(raw):raise ValueError('Nonfinite forecast')
     baseline=history[-1]
     if particle and raw<0:return 0.,'nonnegative_projection_v1'
+    if target=='aqi_pm' and -.5<=raw<0:return 0.,'aqi_zero_projection_v1'
     if (target=='humidity' and not 0<=raw<=100) or (target=='aqi_pm' and not 0<=raw<=500) or (target=='pressure' and raw<0):
         return baseline,'physical_persistence_v1'
     if len(history)>=20:
@@ -199,7 +200,7 @@ def _audit(root):
                     original=conn.execute('SELECT * FROM forecasts WHERE model=? AND id=?',(name,output['original_id'])).fetchone()
                     check(original is not None and original['yhat']==raw and original['generated']==output['issued'],'Correction does not match original evidence')
                 served,reason=reference_policy(target_name,raw,history)
-                check(math.isfinite(served) and output['yhat']==served and output['policy']=='physical_output_v2:'+reason,'Output policy mismatch')
+                check(math.isfinite(served) and output['yhat']==served and output['policy']=='physical_output_v3:'+reason,'Output policy mismatch')
                 check(output['baseline']==values[seq] and output['train_cutoff']<=output['issued'],'Noncausal baseline/cutoff')
                 if output['alignment']=='next_observation':
                     k=seq+output['horizon']

@@ -29,6 +29,25 @@ class StabilityTests(unittest.TestCase):
         self.assertAlmostEqual(result['sampled_recursive_mae'], .01)
         self.assertEqual(result['sampled_persistence_mae'], 0.)
 
+    def test_small_negative_aqi_passes_without_clipping_validation_scores(self):
+        model = {**self.model, 'target': 'aqi_pm'}
+        with patch('aqpy.forecast.stability.nn_model.recursive_predict', return_value=[-.0444] * 12):
+            result = assess(model, [0.] * 200, 160)
+        self.assertEqual(result['status'], 'PASS')
+        self.assertAlmostEqual(result['raw_min'], -.0444)
+        self.assertAlmostEqual(result['sampled_recursive_mae'], .0444)
+        self.assertEqual(result['sampled_persistence_mae'], 0.)
+
+    def test_aqi_tolerance_does_not_hide_late_recursive_failure(self):
+        model = {**self.model, 'target': 'aqi_pm'}
+        for raw in (np.nextafter(-.5, -np.inf), 500.01):
+            with self.subTest(raw=raw), patch(
+                'aqpy.forecast.stability.nn_model.recursive_predict',
+                return_value=[-.04] * 11 + [raw],
+            ):
+                with self.assertRaisesRegex(ValueError, 'step=12'):
+                    assess(model, [0.] * 200, 160)
+
     def test_nonfinite_and_large_positive_excursions_rejected(self):
         for value in [float('nan'), float('inf'), 1000.]:
             with self.subTest(value=value), patch('aqpy.forecast.stability.nn_model.recursive_predict', return_value=[value] * 12):

@@ -2,7 +2,8 @@
 import math
 
 NONNEGATIVE = {f'pm{size}_{kind}' for size in ('10','25','100') for kind in ('st','en')} | {f'p{i}' for i in range(1,7)}
-POLICY_VERSION = 'physical_output_v2'
+AQI_ZERO_TOLERANCE = .5
+POLICY_VERSION = 'physical_output_v3'
 
 
 def bounds(target):
@@ -22,16 +23,19 @@ def in_domain(target,value):
 def correct_output(target,raw,baseline,history=None):
     """Return served forecast and its reason; never feed future actuals into policy.
 
-    Negative particle outputs project to zero, the nearest physical value. Other
-    domain violations use the last observed reading (persistence), avoiding an
-    implausible boundary forecast such as 100% humidity. Nonfinite model outputs
-    remain hard errors. Baseline must itself be a valid observed value.
+    Negative particle outputs project to zero, the nearest physical value. AQI
+    undershoots of at most half an integer index point also project to zero.
+    Other domain violations use the last observed reading (persistence), avoiding
+    implausible boundary forecasts. Nonfinite outputs remain hard errors, and
+    the observed baseline must itself be valid.
     """
     raw=float(raw);baseline=float(baseline)
     if not math.isfinite(raw):raise ValueError('Nonfinite raw model forecast')
     if not in_domain(target,baseline):raise ValueError('Invalid policy baseline')
     if not in_domain(target,raw):
         if target in NONNEGATIVE and raw<0:return 0.,'nonnegative_projection_v1'
+        if target == 'aqi_pm' and -AQI_ZERO_TOLERANCE <= raw < 0:
+            return 0., 'aqi_zero_projection_v1'
         return baseline,'physical_persistence_v1'
     if history is not None and len(history)>=20:
         recent=[float(v) for v in history[-50:]]
