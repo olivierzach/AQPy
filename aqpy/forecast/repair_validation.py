@@ -18,14 +18,15 @@ def reference_policy(target,raw,history):
     if not math.isfinite(raw):raise ValueError('Nonfinite forecast')
     baseline=history[-1]
     if particle and raw<0:return 0.,'nonnegative_projection_v1'
-    if target=='aqi_pm' and -.5<=raw<0:return 0.,'aqi_zero_projection_v1'
-    if (target=='humidity' and not 0<=raw<=100) or (target=='aqi_pm' and not 0<=raw<=500) or (target=='pressure' and raw<0):
+    served,reason=raw,'unchanged'
+    if target=='aqi_pm' and -.5<=raw<0:served,reason=0.,'aqi_zero_projection_v1'
+    elif (target=='humidity' and not 0<=raw<=100) or (target=='aqi_pm' and not 0<=raw<=500) or (target=='pressure' and raw<0):
         return baseline,'physical_persistence_v1'
     if len(history)>=20:
         recent=history[-50:];low=min(recent);high=max(recent)
         span=max(high-low,.1 if target in ('temperature','humidity','pressure') else 1.)
         if raw<low-10*span or raw>high+10*span:return baseline,'causal_stability_persistence_v1'
-    return raw,'unchanged'
+    return served,reason
 
 
 def same(expected,actual,path='model'):

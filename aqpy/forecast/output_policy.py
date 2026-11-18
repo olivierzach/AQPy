@@ -32,11 +32,13 @@ def correct_output(target,raw,baseline,history=None):
     raw=float(raw);baseline=float(baseline)
     if not math.isfinite(raw):raise ValueError('Nonfinite raw model forecast')
     if not in_domain(target,baseline):raise ValueError('Invalid policy baseline')
+    served,reason=raw,'unchanged'
     if not in_domain(target,raw):
         if target in NONNEGATIVE and raw<0:return 0.,'nonnegative_projection_v1'
         if target == 'aqi_pm' and -AQI_ZERO_TOLERANCE <= raw < 0:
-            return 0., 'aqi_zero_projection_v1'
-        return baseline,'physical_persistence_v1'
+            served,reason=0.,'aqi_zero_projection_v1'
+        else:
+            return baseline,'physical_persistence_v1'
     if history is not None and len(history)>=20:
         recent=[float(v) for v in history[-50:]]
         if any(not math.isfinite(v) for v in recent):raise ValueError('Invalid stability history')
@@ -45,4 +47,4 @@ def correct_output(target,raw,baseline,history=None):
         span=max(high-low,resolution)
         if raw<low-10*span or raw>high+10*span:
             return baseline,'causal_stability_persistence_v1'
-    return raw,'unchanged'
+    return served,reason

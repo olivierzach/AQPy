@@ -10,12 +10,14 @@ from aqpy.forecast.repair_export import finalize
 
 class RepairValidationTests(unittest.TestCase):
     def test_reference_aqi_policy_keeps_large_domain_errors_distinct(self):
-        self.assertEqual(reference_policy('aqi_pm', -.5, [25.] * 50),
+        self.assertEqual(reference_policy('aqi_pm', -.5, [1.] * 50),
                          (0., 'aqi_zero_projection_v1'))
         for raw in (-.500001, 500.01):
             with self.subTest(raw=raw):
                 self.assertEqual(reference_policy('aqi_pm', raw, [25.] * 50),
                                  (25., 'physical_persistence_v1'))
+        self.assertEqual(reference_policy('aqi_pm', -.04, [25.] * 50),
+                         (25., 'causal_stability_persistence_v1'))
 
     def test_independent_audit_all_families(self):
         for family in ('adaptive_ar','nn_mlp','rnn_lite_gru'):

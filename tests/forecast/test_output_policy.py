@@ -7,7 +7,7 @@ class OutputPolicyTests(unittest.TestCase):
     def test_aqi_zero_projection_is_limited_to_half_an_index_point(self):
         for raw in (-.5, -.0444344635, math.nextafter(0., -math.inf)):
             with self.subTest(raw=raw):
-                self.assertEqual(correct_output('aqi_pm', raw, 25., [25.] * 50),
+                self.assertEqual(correct_output('aqi_pm', raw, 1., [1.] * 50),
                                  (0., 'aqi_zero_projection_v1'))
         for raw in (math.nextafter(-.5, -math.inf), -1., math.nextafter(500., math.inf)):
             with self.subTest(raw=raw):
@@ -18,6 +18,10 @@ class OutputPolicyTests(unittest.TestCase):
                 self.assertEqual(correct_output('aqi_pm', raw, 25.), (raw, 'unchanged'))
         self.assertFalse(in_domain('aqi_pm', -.01))
         self.assertFalse(in_domain('aqi_pm', 500.01))
+
+    def test_aqi_projection_does_not_hide_an_unstable_drop(self):
+        self.assertEqual(correct_output('aqi_pm', -.04, 25., [25.] * 50),
+                         (25., 'causal_stability_persistence_v1'))
 
     def test_aqi_tolerance_does_not_relax_other_target_bounds(self):
         for target in ('humidity', 'pressure'):
